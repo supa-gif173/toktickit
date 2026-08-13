@@ -40,6 +40,12 @@ export default function App() {
         {state === "success" && (
           <div className="alert alert-success">
             <strong>Online</strong>: Backend is connected.
+            <h5 className="mt-3">Categories</h5>
+            <ol>
+              {categories.map((category) => (
+                <li key={category.id}>{category.name}</li>
+              ))}
+            </ol>
           </div>
         )}
         {state === "error" && (
