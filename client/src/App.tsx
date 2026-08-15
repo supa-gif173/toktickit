@@ -9,11 +9,21 @@ export default function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   void categories;
 
+  const [errorMsg, setErrorMsg] = useState<string>("");
+
   async function handleCheck() {
-    // TODO(Issue 4): set loading, call checkSystem(), then either
-    //   - success: store categories and show Online + the list, or
-    //   - error: show Offline + a useful message.
     setState("loading");
+    setErrorMsg("");
+    try {
+      const status = await checkSystem();
+      if (status.online) {
+        setCategories(status.categories);
+        setState("success");
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || "An error occurred");
+      setState("error");
+    }
   }
 
   return (
@@ -26,7 +36,24 @@ export default function App() {
         {state === "loading" ? "Loading…" : "Check System"}
       </button>
 
-      {/* TODO(Issue 4): render loading / success (Online + categories) / error (Offline) states. */}
+      <div className="mt-4">
+        {state === "success" && (
+          <div className="alert alert-success">
+            <strong>Online</strong>: Backend is connected.
+            <h5 className="mt-3">Categories</h5>
+            <ol>
+              {categories.map((category) => (
+                <li key={category.id}>{category.name}</li>
+              ))}
+            </ol>
+          </div>
+        )}
+        {state === "error" && (
+          <div className="alert alert-danger">
+            <strong>Offline</strong>: {errorMsg}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
