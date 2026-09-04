@@ -15,8 +15,32 @@ async function main() {
       create: { name },
     });
   }
+
+  // Seed mock Requesters for Lab 2
+  const requesters = [
+    { name: "John Doe", email: "john.doe@example.com", department: "Engineering" },
+    { name: "Jane Smith", email: "jane.smith@example.com", department: "HR" },
+    { name: "Alice Johnson", email: "alice.j@example.com", department: "Finance" }
+  ];
+  for (const req of requesters) {
+    await prisma.requesterUser.upsert({
+      where: { email: req.email },
+      update: {},
+      create: req,
+    });
+  }
+
+  // Seed mock Related Systems for Lab 2
+  const systems = ["ERP System", "Email Server", "VPN", "Intranet"];
+  for (const name of systems) {
+    await prisma.relatedSystem.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
   
-  console.log("Category seed completed successfully.");
+  console.log("Database seed completed successfully.");
 }
 
 main()

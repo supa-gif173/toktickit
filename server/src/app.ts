@@ -1,5 +1,10 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import requestersRouter from "./routes/requesters.js";
+import systemsRouter from "./routes/systems.js";
+import categoriesRouter from "./routes/categories.js";
+import ticketsRouter from "./routes/tickets.js";
+import attachmentsRouter from "./routes/attachments.js";
 import { getPrisma } from "./prisma.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
@@ -22,22 +27,13 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
-// Issue 4 — Category list
-// Add:  GET /api/categories
-//   -> read categories from PostgreSQL via getPrisma().category.findMany(...)
-//   -> return each { id, name } in a predictable (id) order
-//   -> on failure, respond 500 with a safe message (no internal details)
-app.get("/api/categories", async (_req: Request, res: Response) => {
-  try {
-    const categories = await getPrisma().category.findMany({
-      select: { id: true, name: true },
-      orderBy: { id: "asc" },
-    });
-    res.status(200).json(categories);
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+// Modular API Routes
+// ---------------------------------------------------------------------------
+app.use("/api/requesters", requestersRouter);
+app.use("/api/systems", systemsRouter);
+app.use("/api/categories", categoriesRouter);
+app.use("/api/tickets", ticketsRouter);
+app.use("/api/attachments", attachmentsRouter);
 // ---------------------------------------------------------------------------
 
 export default app;
