@@ -1,59 +1,44 @@
-import { useState } from "react";
-import { checkSystem, Category } from "./api.js";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Layout from './components/Layout';
+import RequesterSelection from './pages/RequesterSelection';
+import MyTickets from './pages/MyTickets';
+import CreateTicket from './pages/CreateTicket';
+import TicketDetail from './pages/TicketDetail';
 
-// UI states you must handle for Issue 4: idle, loading, success, error.
-type UiState = "idle" | "loading" | "success" | "error";
+// Protected Route wrapper
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { activeRequester, isLoading } = useAuth();
+  
+  if (isLoading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading session...</div>;
+  if (!activeRequester) return <Navigate to="/login" replace />;
+  
+  return <>{children}</>;
+};
 
-export default function App() {
-  const [state, setState] = useState<UiState>("idle");
-  const [categories, setCategories] = useState<Category[]>([]);
-  void categories;
-
-  const [errorMsg, setErrorMsg] = useState<string>("");
-
-  async function handleCheck() {
-    setState("loading");
-    setErrorMsg("");
-    try {
-      const status = await checkSystem();
-      if (status.online) {
-        setCategories(status.categories);
-        setState("success");
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || "An error occurred");
-      setState("error");
-    }
-  }
-
+const App: React.FC = () => {
   return (
-    <div className="container py-5" style={{ maxWidth: 640 }}>
-      <h1 className="h3 mb-4">
-        TokTickIT <span className="text-success">IT Service Desk</span>
-      </h1>
-
-      <button className="btn btn-success" onClick={handleCheck} disabled={state === "loading"}>
-        {state === "loading" ? "Loading…" : "Check System"}
-      </button>
-
-      <div className="mt-4">
-        {state === "success" && (
-          <div className="alert alert-success">
-            <strong>Online</strong>: Backend is connected.
-            <h5 className="mt-3">Categories</h5>
-            <ol>
-              {categories.map((category) => (
-                <li key={category.id}>{category.name}</li>
-              ))}
-            </ol>
-          </div>
-        )}
-        {state === "error" && (
-          <div className="alert alert-danger">
-            <strong>Offline</strong>: {errorMsg}
-          </div>
-        )}
-      </div>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<RequesterSelection />} />
+          
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<MyTickets />} />
+            <Route path="tickets/new" element={<CreateTicket />} />
+            <Route path="tickets/:id" element={<TicketDetail />} />
+          </Route>
+          
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
-}
+};
+
+export default App;
