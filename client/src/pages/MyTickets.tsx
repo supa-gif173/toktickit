@@ -72,12 +72,7 @@ const MyTickets: React.FC = () => {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2 style={{ margin: 0 }}>My Tickets</h2>
-        <Link to="/tickets/new" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-          <PlusCircle size={18} /> Create Ticket
-        </Link>
-      </div>
+      <h2 style={{ margin: 0, marginBottom: '2rem' }}>My Tickets</h2>
 
       <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
         <form onSubmit={handleSearchSubmit} className="form-grid">
