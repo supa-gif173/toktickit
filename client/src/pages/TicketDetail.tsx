@@ -60,7 +60,7 @@ const TicketDetail: React.FC = () => {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
     })
     .catch(() => alert('Failed to download file.'));
   };

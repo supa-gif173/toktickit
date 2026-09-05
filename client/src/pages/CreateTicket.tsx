@@ -43,12 +43,14 @@ const CreateTicket: React.FC = () => {
     }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
     const validFiles = newFiles.filter(f => {
       if (f.size > 5 * 1024 * 1024) {
         setError(`File ${f.name} exceeds 5MB limit.`);
         return false;
       }
-      if (!allowedTypes.includes(f.type)) {
+      const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
+      if (!allowedTypes.includes(f.type) && !allowedExts.includes(ext)) {
         setError(`File ${f.name} is not a valid type (JPG, PNG, WEBP, PDF).`);
         return false;
       }
@@ -186,12 +188,25 @@ const CreateTicket: React.FC = () => {
         <div className="form-group" style={{ marginTop: '1rem' }}>
           <label className="form-label">Attachments (Max 5 files, 5MB each)</label>
           <div 
+            role="button"
+            tabIndex={0}
             style={{ 
               border: '2px dashed var(--border)', borderRadius: '8px', padding: '2rem', 
               textAlign: 'center', backgroundColor: '#F9FAFB', cursor: 'pointer',
               position: 'relative'
             }}
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleFileUpload(e.dataTransfer.files);
+            }}
           >
             <UploadCloud size={32} style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }} />
             <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>Click or drag files to upload</div>
