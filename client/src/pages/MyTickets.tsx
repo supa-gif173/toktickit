@@ -80,8 +80,8 @@ const MyTickets: React.FC = () => {
       </div>
 
       <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div style={{ flex: '1 1 250px' }} className="form-group">
+        <form onSubmit={handleSearchSubmit} className="form-grid">
+          <div className="form-group">
             <label className="form-label" htmlFor="search"><Search size={14} style={{ marginRight: '0.4rem' }}/>Search Summary</label>
             <input 
               id="search" type="text" className="form-input" 
@@ -89,14 +89,14 @@ const MyTickets: React.FC = () => {
               style={{ marginBottom: 0 }}
             />
           </div>
-          <div style={{ flex: '1 1 150px' }} className="form-group">
+          <div className="form-group">
             <label className="form-label" htmlFor="category"><Filter size={14} style={{ marginRight: '0.4rem' }}/>Category</label>
             <select id="category" className="form-select" value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} style={{ marginBottom: 0 }}>
               <option value="">All Categories</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <div style={{ flex: '1 1 150px' }} className="form-group">
+          <div className="form-group">
             <label className="form-label" htmlFor="status"><Filter size={14} style={{ marginRight: '0.4rem' }}/>Status</label>
             <select id="status" className="form-select" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} style={{ marginBottom: 0 }}>
               <option value="">All Statuses</option>
@@ -105,7 +105,9 @@ const MyTickets: React.FC = () => {
               <option value="Resolved">Resolved</option>
             </select>
           </div>
-          <button type="submit" className="btn-secondary" style={{ marginBottom: '1.2rem' }}>Search</button>
+          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+            <button type="submit" className="btn-secondary" style={{ height: '42px', marginTop: 'auto' }}>Search</button>
+          </div>
         </form>
       </div>
 
@@ -134,8 +136,8 @@ const MyTickets: React.FC = () => {
         </div>
       ) : (
         <>
-          <div style={{ overflowX: 'auto', backgroundColor: 'var(--surface)', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div style={{ backgroundColor: 'var(--surface)', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <table className="desktop-table">
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: '#F9FAFB' }}>
                   <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Ticket #</th>
@@ -161,6 +163,21 @@ const MyTickets: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="mobile-cards">
+            {tickets.map(ticket => (
+              <div key={ticket.id} className="mobile-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <Link to={`/tickets/${ticket.id}`} style={{ fontWeight: 500 }}>{ticket.ticketNumber}</Link>
+                  {renderStatusBadge(ticket.status)}
+                </div>
+                <div style={{ fontWeight: 500, marginBottom: '0.5rem' }}>{ticket.summary}</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  {new Date(ticket.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+            ))}
           </div>
           
           {/* Pagination */}

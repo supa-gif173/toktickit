@@ -127,103 +127,105 @@ const CreateTicket: React.FC = () => {
         <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
           <div>
             <div className="form-label" style={{ fontSize: '0.85rem' }}>Ticket Number</div>
-            <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>[Generated on Submit]</div>
+            <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }} className="form-input" style={{backgroundColor: 'var(--pale-green)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.6rem'}}>[Generated on Submit]</div>
           </div>
           <div>
             <div className="form-label" style={{ fontSize: '0.85rem' }}>Status</div>
-            <div style={{ fontWeight: 600, color: 'var(--primary)' }}>New</div>
+            <div style={{ fontWeight: 600, color: 'var(--primary)' }} className="form-input" style={{backgroundColor: 'var(--pale-green)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.6rem'}}>New</div>
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="summary">Summary<span className="required">*</span></label>
-          <input 
-            id="summary" type="text" 
-            className={`form-input ${fieldErrors.summary ? 'error' : ''}`}
-            value={summary} onChange={e => setSummary(e.target.value)} 
-            placeholder="Brief description of the issue"
-            maxLength={100}
-          />
-          {fieldErrors.summary && <div className="form-error-msg">{fieldErrors.summary}</div>}
-        </div>
-
-        <div className="form-group">
-          <label className="form-label" htmlFor="description">Description<span className="required">*</span></label>
-          <textarea 
-            id="description" rows={5}
-            className={`form-textarea ${fieldErrors.description ? 'error' : ''}`}
-            value={description} onChange={e => setDescription(e.target.value)} 
-            placeholder="Detailed explanation..."
-          />
-          {fieldErrors.description && <div className="form-error-msg">{fieldErrors.description}</div>}
-        </div>
-
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <div className="form-group" style={{ flex: 1 }}>
-            <label className="form-label" htmlFor="category">Category<span className="required">*</span></label>
-            <select 
-              id="category" className={`form-select ${fieldErrors.categoryId ? 'error' : ''}`}
-              value={categoryId} onChange={e => setCategoryId(e.target.value)}
-            >
-              <option value="">Select...</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-            {fieldErrors.categoryId && <div className="form-error-msg">{fieldErrors.categoryId}</div>}
-          </div>
-
-          <div className="form-group" style={{ flex: 1 }}>
-            <label className="form-label" htmlFor="system">Related System<span className="required">*</span></label>
-            <select 
-              id="system" className={`form-select ${fieldErrors.systemId ? 'error' : ''}`}
-              value={systemId} onChange={e => setSystemId(e.target.value)}
-            >
-              <option value="">Select...</option>
-              {systems.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            {fieldErrors.systemId && <div className="form-error-msg">{fieldErrors.systemId}</div>}
-          </div>
-        </div>
-
-        {/* Dropzone */}
-        <div className="form-group" style={{ marginTop: '1rem' }}>
-          <label className="form-label">Attachments (Max 5 files, 5MB each)</label>
-          <div 
-            role="button"
-            tabIndex={0}
-            style={{ 
-              border: '2px dashed var(--border)', borderRadius: '8px', padding: '2rem', 
-              textAlign: 'center', backgroundColor: '#F9FAFB', cursor: 'pointer',
-              position: 'relative'
-            }}
-            onClick={() => fileInputRef.current?.click()}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                fileInputRef.current?.click();
-              }
-            }}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              handleFileUpload(e.dataTransfer.files);
-            }}
-          >
-            <UploadCloud size={32} style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }} />
-            <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>Click or drag files to upload</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>JPG, PNG, WEBP, PDF only</div>
+        <div className="form-grid single-column">
+          <div className="form-group">
+            <label className="form-label" htmlFor="summary">Summary<span className="required">*</span></label>
             <input 
-              type="file" 
-              ref={fileInputRef} 
-              style={{ display: 'none' }} 
-              multiple 
-              accept=".jpg,.jpeg,.png,.webp,.pdf"
-              onChange={e => handleFileUpload(e.target.files)}
+              id="summary" type="text" 
+              className={`form-input ${fieldErrors.summary ? 'error' : ''}`}
+              value={summary} onChange={e => setSummary(e.target.value)} 
+              placeholder="Brief description of the issue"
+              maxLength={100}
             />
-            {uploading && (
-              <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: 'var(--primary)' }}>
-                Uploading...
-              </div>
-            )}
+            {fieldErrors.summary && <div className="form-error-msg">{fieldErrors.summary}</div>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="description">Description<span className="required">*</span></label>
+            <textarea 
+              id="description" rows={5}
+              className={`form-textarea ${fieldErrors.description ? 'error' : ''}`}
+              value={description} onChange={e => setDescription(e.target.value)} 
+              placeholder="Detailed explanation..."
+            />
+            {fieldErrors.description && <div className="form-error-msg">{fieldErrors.description}</div>}
+          </div>
+
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label" htmlFor="category">Category<span className="required">*</span></label>
+              <select 
+                id="category" className={`form-select ${fieldErrors.categoryId ? 'error' : ''}`}
+                value={categoryId} onChange={e => setCategoryId(e.target.value)}
+              >
+                <option value="">Select...</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              {fieldErrors.categoryId && <div className="form-error-msg">{fieldErrors.categoryId}</div>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="system">Related System<span className="required">*</span></label>
+              <select 
+                id="system" className={`form-select ${fieldErrors.systemId ? 'error' : ''}`}
+                value={systemId} onChange={e => setSystemId(e.target.value)}
+              >
+                <option value="">Select...</option>
+                {systems.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              {fieldErrors.systemId && <div className="form-error-msg">{fieldErrors.systemId}</div>}
+            </div>
+          </div>
+
+          {/* Dropzone */}
+          <div className="form-group">
+            <label className="form-label">Attachments (Max 5 files, 5MB each)</label>
+            <div 
+              role="button"
+              tabIndex={0}
+              style={{ 
+                border: '2px dashed var(--border)', borderRadius: '8px', padding: '2rem', 
+                textAlign: 'center', backgroundColor: '#F9FAFB', cursor: 'pointer',
+                position: 'relative'
+              }}
+              onClick={() => fileInputRef.current?.click()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                handleFileUpload(e.dataTransfer.files);
+              }}
+            >
+              <UploadCloud size={32} style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem' }} />
+              <div style={{ color: 'var(--text-primary)', fontWeight: 500 }}>Click or drag files to upload</div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>JPG, PNG, WEBP, PDF only</div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                multiple 
+                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                onChange={e => handleFileUpload(e.target.files)}
+              />
+              {uploading && (
+                <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: 'var(--primary)' }}>
+                  Uploading...
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
