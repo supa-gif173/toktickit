@@ -3,7 +3,7 @@ import path from 'path';
 
 test('End-to-End User Journey: Create Ticket', async ({ page }) => {
   // 1. Selecting a Mock Requester identity.
-  await page.goto('http://localhost:5173/');
+  await page.goto('/');
   
   // The app redirects to /login since there is no context
   await expect(page).toHaveURL(/.*login/);
@@ -14,7 +14,7 @@ test('End-to-End User Journey: Create Ticket', async ({ page }) => {
   await page.getByRole('button', { name: 'Continue' }).click();
 
   // Redirects to Dashboard
-  await expect(page).toHaveURL('http://localhost:5173/');
+  await expect(page).toHaveURL('/');
   await expect(page.getByRole('heading', { name: 'TokTickIT' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'My Tickets' })).toBeVisible();
 
@@ -32,21 +32,7 @@ test('End-to-End User Journey: Create Ticket', async ({ page }) => {
   await page.locator('select#category').selectOption({ label: 'Hardware' });
   await page.locator('select#system').selectOption({ label: 'ERP System' });
 
-  // Upload an attachment (mock file)
-  const fileChooserPromise = page.waitForEvent('filechooser');
-  await page.getByText('Click or drag files to upload').click();
-  const fileChooser = await fileChooserPromise;
-  
-  // Create a mock file buffer to upload
-  await fileChooser.setFiles({
-    name: 'test-attachment.txt',
-    mimeType: 'text/plain',
-    buffer: Buffer.from('this is a test attachment for e2e testing')
-  });
-  
-  // Wait for the attachment to upload and appear in the list
-  // Note: the backend actually only allows JPG, PNG, WEBP, PDF based on our client validation
-  // Wait, let's use a PDF to match validation
+
   const pdfFileChooserPromise = page.waitForEvent('filechooser');
   await page.getByText('Click or drag files to upload').click();
   const pdfFileChooser = await pdfFileChooserPromise;
@@ -67,7 +53,7 @@ test('End-to-End User Journey: Create Ticket', async ({ page }) => {
 
   // 5. Verifying the newly created ticket details appear correctly on the My Tickets dashboard.
   await page.getByRole('link', { name: 'Back to My Tickets' }).click();
-  await expect(page).toHaveURL('http://localhost:5173/');
+  await expect(page).toHaveURL('/');
   
   // The new ticket summary should be in the table
   await expect(page.getByText(summary)).toBeVisible();
