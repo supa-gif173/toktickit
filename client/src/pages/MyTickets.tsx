@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchTickets, fetchCategories, Ticket, Category } from '../api';
-import { Search, Filter, AlertCircle, PlusCircle } from 'lucide-react';
+import { Search, Filter, AlertCircle, PlusCircle, ChevronUp, ChevronDown } from 'lucide-react';
 
 const MyTickets: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -15,13 +15,15 @@ const MyTickets: React.FC = () => {
   const [category, setCategory] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const loadData = async () => {
     setLoading(true);
     setError('');
     try {
       const [ticketsData, categoriesData] = await Promise.all([
-        fetchTickets({ page, search, category, status }),
+        fetchTickets({ page, search, category, status, sortBy, sortOrder }),
         fetchCategories().catch(() => []) // ok to fail silently
       ]);
       setTickets(ticketsData.data);
@@ -37,7 +39,7 @@ const MyTickets: React.FC = () => {
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, category, status]);
+  }, [page, category, status, sortBy, sortOrder]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +52,37 @@ const MyTickets: React.FC = () => {
     setCategory('');
     setStatus('');
     setPage(1);
+    setSortBy('createdAt');
+    setSortOrder('desc');
+  };
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setPage(1);
+  };
+
+  const renderSortHeader = (field: string, label: string) => {
+    return (
+      <th 
+        style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}
+        onClick={() => handleSort(field)}
+        title={`Sort by ${label}`}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          {label}
+          {sortBy === field ? (
+            sortOrder === 'asc' ? <ChevronUp size={16} color="var(--primary)" /> : <ChevronDown size={16} color="var(--primary)" />
+          ) : (
+            <ChevronDown size={16} style={{ opacity: 0.2 }} />
+          )}
+        </div>
+      </th>
+    );
   };
 
   const renderStatusBadge = (status: string) => {
@@ -135,9 +168,9 @@ const MyTickets: React.FC = () => {
             <table className="desktop-table">
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: '#F9FAFB' }}>
-                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Ticket #</th>
+                  {renderSortHeader('ticketNumber', 'Ticket #')}
                   <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Summary</th>
-                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Date Created</th>
+                  {renderSortHeader('createdAt', 'Date Created')}
                   <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Status</th>
                 </tr>
               </thead>

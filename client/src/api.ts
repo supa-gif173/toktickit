@@ -108,7 +108,7 @@ export async function fetchSystems(): Promise<RelatedSystem[]> {
   return res.json();
 }
 
-export async function fetchTickets(params?: { page?: number; limit?: number; search?: string; status?: string; category?: string }): Promise<{ data: Ticket[]; meta: any }> {
+export async function fetchTickets(params?: { page?: number; limit?: number; search?: string; status?: string; category?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: Ticket[]; meta: any }> {
   const query = new URLSearchParams();
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
