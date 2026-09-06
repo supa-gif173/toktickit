@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchTickets, fetchCategories, Ticket, Category } from '../api';
-import { Search, Filter, AlertCircle, PlusCircle } from 'lucide-react';
+import { Search, Filter, AlertCircle, PlusCircle, ChevronUp, ChevronDown } from 'lucide-react';
 
 const MyTickets: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -15,13 +15,15 @@ const MyTickets: React.FC = () => {
   const [category, setCategory] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const loadData = async () => {
     setLoading(true);
     setError('');
     try {
       const [ticketsData, categoriesData] = await Promise.all([
-        fetchTickets({ page, search, category, status }),
+        fetchTickets({ page, search, category, status, sortBy, sortOrder }),
         fetchCategories().catch(() => []) // ok to fail silently
       ]);
       setTickets(ticketsData.data);
@@ -37,7 +39,7 @@ const MyTickets: React.FC = () => {
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, category, status]);
+  }, [page, category, status, sortBy, sortOrder]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +52,37 @@ const MyTickets: React.FC = () => {
     setCategory('');
     setStatus('');
     setPage(1);
+    setSortBy('createdAt');
+    setSortOrder('desc');
+  };
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+    setPage(1);
+  };
+
+  const renderSortHeader = (field: string, label: string) => {
+    return (
+      <th 
+        style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}
+        onClick={() => handleSort(field)}
+        title={`Sort by ${label}`}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          {label}
+          {sortBy === field ? (
+            sortOrder === 'asc' ? <ChevronUp size={16} color="var(--primary)" /> : <ChevronDown size={16} color="var(--primary)" />
+          ) : (
+            <ChevronDown size={16} style={{ opacity: 0.2 }} />
+          )}
+        </div>
+      </th>
+    );
   };
 
   const renderStatusBadge = (status: string) => {
@@ -72,16 +105,11 @@ const MyTickets: React.FC = () => {
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <h2 style={{ margin: 0 }}>My Tickets</h2>
-        <Link to="/tickets/new" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-          <PlusCircle size={18} /> Create Ticket
-        </Link>
-      </div>
+      <h2 style={{ margin: 0, marginBottom: '2rem' }}>My Tickets</h2>
 
       <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div style={{ flex: '1 1 250px' }} className="form-group">
+        <form onSubmit={handleSearchSubmit} className="form-grid">
+          <div className="form-group">
             <label className="form-label" htmlFor="search"><Search size={14} style={{ marginRight: '0.4rem' }}/>Search Summary</label>
             <input 
               id="search" type="text" className="form-input" 
@@ -89,14 +117,14 @@ const MyTickets: React.FC = () => {
               style={{ marginBottom: 0 }}
             />
           </div>
-          <div style={{ flex: '1 1 150px' }} className="form-group">
+          <div className="form-group">
             <label className="form-label" htmlFor="category"><Filter size={14} style={{ marginRight: '0.4rem' }}/>Category</label>
             <select id="category" className="form-select" value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} style={{ marginBottom: 0 }}>
               <option value="">All Categories</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <div style={{ flex: '1 1 150px' }} className="form-group">
+          <div className="form-group">
             <label className="form-label" htmlFor="status"><Filter size={14} style={{ marginRight: '0.4rem' }}/>Status</label>
             <select id="status" className="form-select" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} style={{ marginBottom: 0 }}>
               <option value="">All Statuses</option>
@@ -105,7 +133,9 @@ const MyTickets: React.FC = () => {
               <option value="Resolved">Resolved</option>
             </select>
           </div>
-          <button type="submit" className="btn-secondary" style={{ marginBottom: '1.2rem' }}>Search</button>
+          <div className="form-group" style={{ justifyContent: 'flex-end' }}>
+            <button type="submit" className="btn-secondary" style={{ height: '42px', marginTop: 'auto' }}>Search</button>
+          </div>
         </form>
       </div>
 
@@ -134,13 +164,13 @@ const MyTickets: React.FC = () => {
         </div>
       ) : (
         <>
-          <div style={{ overflowX: 'auto', backgroundColor: 'var(--surface)', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <div style={{ backgroundColor: 'var(--surface)', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <table className="desktop-table">
               <thead>
                 <tr style={{ borderBottom: '2px solid var(--border)', backgroundColor: '#F9FAFB' }}>
-                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Ticket #</th>
+                  {renderSortHeader('ticketNumber', 'Ticket #')}
                   <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Summary</th>
-                  <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Date Created</th>
+                  {renderSortHeader('createdAt', 'Date Created')}
                   <th style={{ padding: '1rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Status</th>
                 </tr>
               </thead>
@@ -162,33 +192,46 @@ const MyTickets: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          <div className="mobile-cards">
+            {tickets.map(ticket => (
+              <div key={ticket.id} className="mobile-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <Link to={`/tickets/${ticket.id}`} style={{ fontWeight: 500 }}>{ticket.ticketNumber}</Link>
+                  {renderStatusBadge(ticket.status)}
+                </div>
+                <div style={{ fontWeight: 500, marginBottom: '0.5rem' }}>{ticket.summary}</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  {new Date(ticket.createdAt).toLocaleDateString()}
+                </div>
+              </div>
+            ))}
+          </div>
           
           {/* Pagination */}
-          {meta.totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Showing {((meta.page - 1) * meta.limit) + 1} to {Math.min(meta.page * meta.limit, meta.totalCount)} of {meta.totalCount} tickets
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
-                  className="btn-secondary" 
-                  disabled={page === 1} 
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  style={{ padding: '0.4rem 0.8rem' }}
-                >
-                  Previous
-                </button>
-                <button 
-                  className="btn-secondary" 
-                  disabled={page === meta.totalPages} 
-                  onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
-                  style={{ padding: '0.4rem 0.8rem' }}
-                >
-                  Next
-                </button>
-              </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Showing {meta.totalCount === 0 ? 0 : ((meta.page - 1) * meta.limit) + 1} to {Math.min(meta.page * meta.limit, meta.totalCount)} of {meta.totalCount} tickets
             </div>
-          )}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button 
+                className="btn-secondary" 
+                disabled={page === 1} 
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                style={{ padding: '0.4rem 0.8rem' }}
+              >
+                Previous
+              </button>
+              <button 
+                className="btn-secondary" 
+                disabled={page === meta.totalPages || meta.totalPages === 0} 
+                onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
+                style={{ padding: '0.4rem 0.8rem' }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </>
       )}
     </div>
