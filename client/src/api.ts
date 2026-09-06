@@ -128,7 +128,12 @@ export async function fetchTicketDetails(id: string): Promise<Ticket> {
   const res = await fetch(`${API_URL}/api/tickets/${id}`, {
     headers: getHeaders()
   });
-  if (!res.ok) throw new Error("Failed to fetch ticket details");
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Unauthorized Access: You do not have permission to view this ticket.");
+    }
+    throw new Error("Failed to fetch ticket details");
+  }
   return res.json();
 }
 
