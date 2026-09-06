@@ -98,6 +98,7 @@ const CreateTicket: React.FC = () => {
     setLoading(true);
     setError('');
     try {
+      await new Promise(resolve => setTimeout(resolve, 3000));
       const ticket = await createTicket({
         summary,
         description,
