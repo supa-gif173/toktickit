@@ -29,6 +29,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 a {
@@ -176,8 +177,16 @@ button:disabled {
   gap: 1rem;
 }
 
-@media (min-width: 992px) {
-  .container { padding: 0 2rem; }
+@media (max-width: 767px) {
+  button {
+    padding: 0.875rem 1.5rem;
+  }
+  .form-input, .form-select, .form-textarea {
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
   .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -189,6 +198,10 @@ button:disabled {
   .form-grid .full-width {
     grid-column: 1 / -1;
   }
+}
+
+@media (min-width: 992px) {
+  .container { padding: 0 2rem; }
 }
 
 /* Responsive Table */

@@ -82,24 +82,24 @@ const TicketDetail: React.FC = () => {
         <ArrowLeft size={16} /> Back to My Tickets
       </Link>
       
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem' }}>
+      <div className="form-grid">
         {/* Main Details (Left Col) */}
-        <div style={{ flex: '1 1 500px', backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+        <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
             <h2 style={{ margin: 0, fontSize: '1.8rem' }}>{ticket.summary}</h2>
             {renderStatusBadge(ticket.status)}
           </div>
           
           <div style={{ marginBottom: '2rem' }}>
             <div className="form-label">Description</div>
-            <div style={{ whiteSpace: 'pre-wrap', color: 'var(--text-primary)', lineHeight: 1.6 }}>
+            <div style={{ whiteSpace: 'pre-wrap', color: 'var(--text-primary)', lineHeight: 1.6, wordBreak: 'break-word' }}>
               {ticket.description}
             </div>
           </div>
         </div>
 
         {/* Metadata & Attachments (Right Col) */}
-        <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
             <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Ticket Details</h3>
