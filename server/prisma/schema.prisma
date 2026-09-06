@@ -18,9 +18,62 @@ datasource db {
 //   createdAt DateTime @default(now())
 // Then run:  npx prisma migrate dev --name init
 // TODO(Issue 3): add the Category model below.
-model Category {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
+model RequesterUser {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  department String
+  createdAt  DateTime @default(now())
+  tickets    Ticket[]
 }
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model RelatedSystem {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model Ticket {
+  id           String   @id @default(uuid())
+  ticketNumber String   @unique
+  summary      String
+  description  String
+  status       String   @default("New")
+  requesterId  String
+  categoryId   String
+  systemId     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  requester RequesterUser @relation(fields: [requesterId], references: [id])
+  category  Category      @relation(fields: [categoryId], references: [id])
+  system    RelatedSystem @relation(fields: [systemId], references: [id])
+
+  attachments Attachment[]
+}
+
+model Attachment {
+  id         String    @id @default(uuid())
+  ticketId   String?
+  fileName   String
+  fileSize   Int
+  mimeType   String
+  storageUrl String
+  uploadedAt DateTime  @default(now())
+  deletedAt  DateTime?
+  removalReason String?
+
+  ticket Ticket? @relation(fields: [ticketId], references: [id])
+}
+
 // ---------------------------------------------------------------------------

@@ -1,0 +1,277 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { fetchTicketDetails, uploadAttachment, removeAttachment, Ticket, API_URL } from '../api';
+import { ArrowLeft, AlertCircle, Download, Paperclip, Trash2 } from 'lucide-react';
+
+const TicketDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const [ticket, setTicket] = useState<Ticket | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchTicketDetails(id)
+      .then(data => setTicket(data))
+      .catch(err => setError(err.message || 'Failed to load ticket details.'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0 || !id) return;
+    const file = files[0];
+    
+    setUploadError('');
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError(`File ${file.name} exceeds 5MB limit.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+    
+    if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+      setUploadError(`File ${file.name} is not a valid type (JPG, PNG, WEBP, PDF).`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const newAttachment = await uploadAttachment(file, id);
+      setTicket(prev => prev ? {
+        ...prev,
+        attachments: [...(prev.attachments || []), newAttachment]
+      } : prev);
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload attachment.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const renderStatusBadge = (status: string) => {
+    let bg = '#E5E7EB';
+    let color = '#374151';
+    if (status === 'New') { bg = '#EAF6EF'; color = 'var(--primary)'; }
+    else if (status === 'In Progress') { bg = '#FEF3C7'; color = '#B45309'; }
+    else if (status === 'Resolved') { bg = '#D1FAE5'; color = '#065F46'; }
+    
+    return (
+      <span style={{ 
+        backgroundColor: bg, color, 
+        padding: '0.3rem 0.8rem', borderRadius: '9999px', 
+        fontSize: '0.9rem', fontWeight: 600 
+      }}>
+        {status}
+      </span>
+    );
+  };
+
+  const handleDownload = (attachmentId: string) => {
+    // We cannot just use a generic href because we need the X-Requester-Id header for auth.
+    // However, fetch with blob is possible.
+    const stored = localStorage.getItem('toktickit_requester');
+    let requesterId = '';
+    if (stored) {
+      try { requesterId = JSON.parse(stored).id; } catch (e) {}
+    }
+
+    fetch(`${API_URL}/api/attachments/${attachmentId}?download=true`, {
+      headers: { 'X-Requester-Id': requesterId }
+    })
+    .then(res => {
+      if (!res.ok) throw new Error('Failed to download');
+      const filename = res.headers.get('Content-Disposition')?.split('filename="')[1]?.split('"')[0] || 'download';
+      return res.blob().then(blob => ({ blob, filename }));
+    })
+    .then(({ blob, filename }) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    })
+    .catch(() => alert('Failed to download file.'));
+  };
+
+  const handleRemove = async (attachmentId: string) => {
+    const reason = window.prompt("Please enter a reason for removing this attachment:");
+    if (!reason || reason.trim() === '') {
+      return; // Cancelled or empty
+    }
+
+    try {
+      await removeAttachment(attachmentId, reason);
+      setTicket(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          attachments: prev.attachments?.map(a => 
+            a.id === attachmentId ? { ...a, deletedAt: new Date().toISOString(), removalReason: reason } : a
+          )
+        };
+      });
+    } catch (err: any) {
+      alert(err.message || 'Failed to remove attachment.');
+    }
+  };
+
+  if (loading) return <div className="container" style={{ padding: '3rem', textAlign: 'center' }}>Loading ticket...</div>;
+  if (error) return (
+    <div className="container" style={{ marginTop: '2rem' }}>
+      <div style={{ backgroundColor: '#FEE2E2', color: 'var(--error)', padding: '1.5rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <AlertCircle size={24} /> {error}
+      </div>
+      <Link to="/" style={{ display: 'inline-block', marginTop: '1rem', fontWeight: 500 }}>&larr; Back to Dashboard</Link>
+    </div>
+  );
+  if (!ticket) return null;
+
+  return (
+    <div className="container" style={{ maxWidth: '900px' }}>
+      <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.5rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+        <ArrowLeft size={16} /> Back to My Tickets
+      </Link>
+      
+      <div className="form-grid">
+        {/* Main Details (Left Col) */}
+        <div style={{ backgroundColor: 'var(--surface)', padding: '2rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <h2 style={{ margin: 0, fontSize: '1.8rem' }}>{ticket.summary}</h2>
+            {renderStatusBadge(ticket.status)}
+          </div>
+          
+          <div style={{ marginBottom: '2rem' }}>
+            <div className="form-label">Description</div>
+            <div style={{ whiteSpace: 'pre-wrap', color: 'var(--text-primary)', lineHeight: 1.6, wordBreak: 'break-word' }}>
+              {ticket.description}
+            </div>
+          </div>
+        </div>
+
+        {/* Metadata & Attachments (Right Col) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          
+          <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Ticket Details</h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+              <div>
+                <div className="form-label" style={{ fontSize: '0.85rem' }}>Requester</div>
+                <div style={{ fontWeight: 500, backgroundColor: 'var(--pale-green)', padding: '0.5rem', borderRadius: '4px', color: 'var(--primary)' }}>{ticket.requester?.name || 'Unknown'}</div>
+              </div>
+              <div>
+                <div className="form-label" style={{ fontSize: '0.85rem' }}>Ticket Number</div>
+                <div style={{ fontWeight: 500 }}>{ticket.ticketNumber}</div>
+              </div>
+              <div>
+                <div className="form-label" style={{ fontSize: '0.85rem' }}>Date Created</div>
+                <div style={{ fontWeight: 500 }}>{new Date(ticket.createdAt).toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="form-label" style={{ fontSize: '0.85rem' }}>Category</div>
+                <div style={{ fontWeight: 500 }}>{ticket.category?.name || 'Unknown'}</div>
+              </div>
+              <div>
+                <div className="form-label" style={{ fontSize: '0.85rem' }}>Related System</div>
+                <div style={{ fontWeight: 500 }}>{ticket.system?.name || 'Unknown'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Paperclip size={18} /> Attachments
+              </h3>
+              <button onClick={() => fileInputRef.current?.click()} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem' }} disabled={uploading}>
+                {uploading ? 'Uploading...' : 'Add Attachment'}
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                onChange={e => handleFileUpload(e.target.files)}
+              />
+            </div>
+            
+            {uploadError && <div className="form-error-msg" style={{ marginBottom: '1rem' }}>{uploadError}</div>}
+            
+            {!ticket.attachments || ticket.attachments.length === 0 ? (
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>
+                No active attachments.
+              </div>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {ticket.attachments.map(a => {
+                  const isRemoved = !!a.deletedAt;
+                  return (
+                    <li key={a.id} style={{ 
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                      padding: '0.8rem', 
+                      backgroundColor: isRemoved ? '#F3F4F6' : 'var(--pale-green)', 
+                      borderRadius: '6px',
+                      opacity: isRemoved ? 0.7 : 1,
+                      border: isRemoved ? '1px dashed #D1D5DB' : 'none'
+                    }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 500, wordBreak: 'break-all', textDecoration: isRemoved ? 'line-through' : 'none' }}>
+                          {a.fileName}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          {(a.fileSize / 1024).toFixed(1)} KB
+                        </span>
+                        {isRemoved && (
+                          <span style={{ fontSize: '0.8rem', color: 'var(--error)', marginTop: '0.3rem', fontWeight: 500 }}>
+                            Removed: {a.removalReason || 'No reason provided'}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {!isRemoved && (
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button 
+                            onClick={() => handleDownload(a.id)}
+                            className="btn-secondary" 
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                            aria-label={`Download ${a.fileName}`}
+                          >
+                            <Download size={14} /> Download
+                          </button>
+                          <button 
+                            onClick={() => handleRemove(a.id)}
+                            style={{ 
+                              padding: '0.3rem 0.6rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem',
+                              backgroundColor: 'transparent', color: 'var(--error)', border: '1px solid var(--error)', borderRadius: '4px', cursor: 'pointer'
+                            }}
+                            aria-label={`Remove ${a.fileName}`}
+                          >
+                            <Trash2 size={14} /> Remove
+                          </button>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TicketDetail;
