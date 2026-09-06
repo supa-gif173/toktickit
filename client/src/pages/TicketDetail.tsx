@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchTicketDetails, uploadAttachment, Ticket, API_URL } from '../api';
-import { ArrowLeft, AlertCircle, Download, Paperclip } from 'lucide-react';
+import { fetchTicketDetails, uploadAttachment, removeAttachment, Ticket, API_URL } from '../api';
+import { ArrowLeft, AlertCircle, Download, Paperclip, Trash2 } from 'lucide-react';
 
 const TicketDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -104,6 +104,28 @@ const TicketDetail: React.FC = () => {
     .catch(() => alert('Failed to download file.'));
   };
 
+  const handleRemove = async (attachmentId: string) => {
+    const reason = window.prompt("Please enter a reason for removing this attachment:");
+    if (!reason || reason.trim() === '') {
+      return; // Cancelled or empty
+    }
+
+    try {
+      await removeAttachment(attachmentId, reason);
+      setTicket(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          attachments: prev.attachments?.map(a => 
+            a.id === attachmentId ? { ...a, deletedAt: new Date().toISOString(), removalReason: reason } : a
+          )
+        };
+      });
+    } catch (err: any) {
+      alert(err.message || 'Failed to remove attachment.');
+    }
+  };
+
   if (loading) return <div className="container" style={{ padding: '3rem', textAlign: 'center' }}>Loading ticket...</div>;
   if (error) return (
     <div className="container" style={{ marginTop: '2rem' }}>
@@ -192,22 +214,56 @@ const TicketDetail: React.FC = () => {
               </div>
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {ticket.attachments.map(a => (
-                  <li key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.8rem', backgroundColor: 'var(--pale-green)', borderRadius: '6px' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 500, wordBreak: 'break-all' }}>{a.fileName}</span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{(a.fileSize / 1024).toFixed(1)} KB</span>
-                    </div>
-                    <button 
-                      onClick={() => handleDownload(a.id)}
-                      className="btn-secondary" 
-                      style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
-                      aria-label={`Download ${a.fileName}`}
-                    >
-                      <Download size={14} /> Download
-                    </button>
-                  </li>
-                ))}
+                {ticket.attachments.map(a => {
+                  const isRemoved = !!a.deletedAt;
+                  return (
+                    <li key={a.id} style={{ 
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                      padding: '0.8rem', 
+                      backgroundColor: isRemoved ? '#F3F4F6' : 'var(--pale-green)', 
+                      borderRadius: '6px',
+                      opacity: isRemoved ? 0.7 : 1,
+                      border: isRemoved ? '1px dashed #D1D5DB' : 'none'
+                    }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 500, wordBreak: 'break-all', textDecoration: isRemoved ? 'line-through' : 'none' }}>
+                          {a.fileName}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          {(a.fileSize / 1024).toFixed(1)} KB
+                        </span>
+                        {isRemoved && (
+                          <span style={{ fontSize: '0.8rem', color: 'var(--error)', marginTop: '0.3rem', fontWeight: 500 }}>
+                            Removed: {a.removalReason || 'No reason provided'}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {!isRemoved && (
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button 
+                            onClick={() => handleDownload(a.id)}
+                            className="btn-secondary" 
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                            aria-label={`Download ${a.fileName}`}
+                          >
+                            <Download size={14} /> Download
+                          </button>
+                          <button 
+                            onClick={() => handleRemove(a.id)}
+                            style={{ 
+                              padding: '0.3rem 0.6rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem',
+                              backgroundColor: 'transparent', color: 'var(--error)', border: '1px solid var(--error)', borderRadius: '4px', cursor: 'pointer'
+                            }}
+                            aria-label={`Remove ${a.fileName}`}
+                          >
+                            <Trash2 size={14} /> Remove
+                          </button>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

@@ -110,9 +110,7 @@ router.get("/:id", async (req: Request, res: Response) => {
         category: true,
         system: true,
         requester: true,
-        attachments: {
-          where: { deletedAt: null }
-        }
+        attachments: true
       }
     });
 

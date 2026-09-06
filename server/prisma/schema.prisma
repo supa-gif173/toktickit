@@ -71,6 +71,7 @@ model Attachment {
   storageUrl String
   uploadedAt DateTime  @default(now())
   deletedAt  DateTime?
+  removalReason String?
 
   ticket Ticket? @relation(fields: [ticketId], references: [id])
 }

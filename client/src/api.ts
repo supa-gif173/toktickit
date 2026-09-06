@@ -35,6 +35,7 @@ export interface Attachment {
   storageUrl: string;
   uploadedAt: string;
   deletedAt?: string | null;
+  removalReason?: string | null;
 }
 
 export interface Ticket {
@@ -163,10 +164,11 @@ export async function uploadAttachment(file: File, ticketId?: string): Promise<A
   return res.json();
 }
 
-export async function removeAttachment(id: string): Promise<void> {
+export async function removeAttachment(id: string, reason?: string): Promise<void> {
   const res = await fetch(`${API_URL}/api/attachments/${id}`, {
     method: "DELETE",
-    headers: getHeaders()
+    headers: getHeaders(),
+    body: reason ? JSON.stringify({ reason }) : undefined
   });
   if (!res.ok) throw new Error("Failed to remove attachment");
 }

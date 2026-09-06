@@ -124,9 +124,17 @@ router.delete("/:id", async (req: Request, res: Response) => {
       return res.status(403).json({ error: "Forbidden", message: "You do not own this attachment" });
     }
 
+    const reason = req.body.reason;
+    if (!reason) {
+      return res.status(400).json({ error: "Bad Request", message: "A reason is required for removal." });
+    }
+
     await getPrisma().attachment.update({
       where: { id: attachmentId },
-      data: { deletedAt: new Date() }
+      data: { 
+        deletedAt: new Date(),
+        removalReason: reason
+      }
     });
 
     res.status(200).json({ message: "Attachment successfully removed." });
