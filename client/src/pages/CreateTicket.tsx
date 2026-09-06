@@ -245,7 +245,12 @@ const CreateTicket: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
           <button type="button" className="btn-secondary" onClick={() => navigate('/')}>Cancel</button>
-          <button type="submit" className="btn-primary" disabled={loading || uploading}>
+          <button 
+            type="submit" 
+            className="btn-primary" 
+            disabled={loading || uploading}
+            style={(loading || uploading) ? { opacity: 0.6, cursor: 'not-allowed', backgroundColor: 'var(--primary)', color: 'white' } : {}}
+          >
             {loading ? 'Submitting...' : 'Submit Ticket'}
           </button>
         </div>
