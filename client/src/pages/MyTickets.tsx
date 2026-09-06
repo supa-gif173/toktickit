@@ -209,31 +209,29 @@ const MyTickets: React.FC = () => {
           </div>
           
           {/* Pagination */}
-          {meta.totalPages > 1 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Showing {((meta.page - 1) * meta.limit) + 1} to {Math.min(meta.page * meta.limit, meta.totalCount)} of {meta.totalCount} tickets
-              </div>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
-                  className="btn-secondary" 
-                  disabled={page === 1} 
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  style={{ padding: '0.4rem 0.8rem' }}
-                >
-                  Previous
-                </button>
-                <button 
-                  className="btn-secondary" 
-                  disabled={page === meta.totalPages} 
-                  onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
-                  style={{ padding: '0.4rem 0.8rem' }}
-                >
-                  Next
-                </button>
-              </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              Showing {meta.totalCount === 0 ? 0 : ((meta.page - 1) * meta.limit) + 1} to {Math.min(meta.page * meta.limit, meta.totalCount)} of {meta.totalCount} tickets
             </div>
-          )}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button 
+                className="btn-secondary" 
+                disabled={page === 1} 
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                style={{ padding: '0.4rem 0.8rem' }}
+              >
+                Previous
+              </button>
+              <button 
+                className="btn-secondary" 
+                disabled={page === meta.totalPages || meta.totalPages === 0} 
+                onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
+                style={{ padding: '0.4rem 0.8rem' }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </>
       )}
     </div>
