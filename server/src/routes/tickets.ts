@@ -109,9 +109,8 @@ router.get("/:id", async (req: Request, res: Response) => {
       include: {
         category: true,
         system: true,
-        attachments: {
-          where: { deletedAt: null }
-        }
+        requester: true,
+        attachments: true
       }
     });
 

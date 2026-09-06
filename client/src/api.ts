@@ -35,6 +35,7 @@ export interface Attachment {
   storageUrl: string;
   uploadedAt: string;
   deletedAt?: string | null;
+  removalReason?: string | null;
 }
 
 export interface Ticket {
@@ -48,6 +49,7 @@ export interface Ticket {
   systemId: string;
   createdAt: string;
   updatedAt: string;
+  requester?: Requester;
   category?: Category;
   system?: RelatedSystem;
   attachments?: Attachment[];
@@ -107,7 +109,7 @@ export async function fetchSystems(): Promise<RelatedSystem[]> {
   return res.json();
 }
 
-export async function fetchTickets(params?: { page?: number; limit?: number; search?: string; status?: string; category?: string }): Promise<{ data: Ticket[]; meta: any }> {
+export async function fetchTickets(params?: { page?: number; limit?: number; search?: string; status?: string; category?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: Ticket[]; meta: any }> {
   const query = new URLSearchParams();
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -126,7 +128,12 @@ export async function fetchTicketDetails(id: string): Promise<Ticket> {
   const res = await fetch(`${API_URL}/api/tickets/${id}`, {
     headers: getHeaders()
   });
-  if (!res.ok) throw new Error("Failed to fetch ticket details");
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("Unauthorized Access: You do not have permission to view this ticket.");
+    }
+    throw new Error("Failed to fetch ticket details");
+  }
   return res.json();
 }
 
@@ -143,9 +150,12 @@ export async function createTicket(payload: { summary: string; description: stri
   return res.json();
 }
 
-export async function uploadAttachment(file: File): Promise<Attachment> {
+export async function uploadAttachment(file: File, ticketId?: string): Promise<Attachment> {
   const formData = new FormData();
   formData.append("file", file);
+  if (ticketId) {
+    formData.append("ticketId", ticketId);
+  }
 
   const res = await fetch(`${API_URL}/api/attachments`, {
     method: "POST",
@@ -159,10 +169,11 @@ export async function uploadAttachment(file: File): Promise<Attachment> {
   return res.json();
 }
 
-export async function removeAttachment(id: string): Promise<void> {
+export async function removeAttachment(id: string, reason?: string): Promise<void> {
   const res = await fetch(`${API_URL}/api/attachments/${id}`, {
     method: "DELETE",
-    headers: getHeaders()
+    headers: getHeaders(),
+    body: reason ? JSON.stringify({ reason }) : undefined
   });
   if (!res.ok) throw new Error("Failed to remove attachment");
 }
