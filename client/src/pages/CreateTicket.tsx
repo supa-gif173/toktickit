@@ -20,6 +20,7 @@ const CreateTicket: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
+  const [successTicket, setSuccessTicket] = useState<{ id: string, ticketNumber: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -104,12 +105,41 @@ const CreateTicket: React.FC = () => {
         systemId,
         attachments: attachments.map(a => a.id)
       });
-      navigate(`/tickets/${ticket.id}`);
+      setSuccessTicket({ id: ticket.id, ticketNumber: ticket.ticketNumber });
     } catch (err: any) {
       setError(err.message || 'Failed to create ticket.');
+    } finally {
       setLoading(false);
     }
   };
+
+  const resetForm = () => {
+    setSummary('');
+    setDescription('');
+    setCategoryId('');
+    setSystemId('');
+    setAttachments([]);
+    setSuccessTicket(null);
+    setFieldErrors({});
+    setError('');
+  };
+
+  if (successTicket) {
+    return (
+      <div className="container" style={{ maxWidth: '800px', textAlign: 'center', marginTop: '4rem' }}>
+        <div style={{ backgroundColor: 'var(--pale-green)', border: '1px solid var(--success)', padding: '3rem 2rem', borderRadius: '8px' }}>
+          <h2 style={{ color: 'var(--success)', marginBottom: '1rem' }}>Ticket Created Successfully!</h2>
+          <p style={{ fontSize: '1.1rem', marginBottom: '2rem' }}>
+            Your ticket number is: <strong style={{ color: 'var(--text-primary)' }}>{successTicket.ticketNumber}</strong>
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <button type="button" className="btn-secondary" onClick={resetForm}>Create Another Ticket</button>
+            <button type="button" className="btn-primary" onClick={() => navigate(`/tickets/${successTicket.id}`)}>View Ticket</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ maxWidth: '800px' }}>
