@@ -48,6 +48,7 @@ export interface Ticket {
   systemId: string;
   createdAt: string;
   updatedAt: string;
+  requester?: Requester;
   category?: Category;
   system?: RelatedSystem;
   attachments?: Attachment[];

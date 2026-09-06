@@ -106,6 +106,10 @@ const TicketDetail: React.FC = () => {
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
               <div>
+                <div className="form-label" style={{ fontSize: '0.85rem' }}>Requester</div>
+                <div style={{ fontWeight: 500, backgroundColor: 'var(--pale-green)', padding: '0.5rem', borderRadius: '4px', color: 'var(--primary)' }}>{ticket.requester?.name || 'Unknown'}</div>
+              </div>
+              <div>
                 <div className="form-label" style={{ fontSize: '0.85rem' }}>Ticket Number</div>
                 <div style={{ fontWeight: 500 }}>{ticket.ticketNumber}</div>
               </div>
