@@ -127,11 +127,11 @@ const CreateTicket: React.FC = () => {
         <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
           <div>
             <div className="form-label" style={{ fontSize: '0.85rem' }}>Ticket Number</div>
-            <div style={{ fontWeight: 600, color: 'var(--text-secondary)' }} className="form-input" style={{backgroundColor: 'var(--pale-green)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.6rem'}}>[Generated on Submit]</div>
+            <div style={{ fontWeight: 600, color: 'var(--text-secondary)', backgroundColor: 'var(--pale-green)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.6rem' }} className="form-input">[Generated on Submit]</div>
           </div>
           <div>
             <div className="form-label" style={{ fontSize: '0.85rem' }}>Status</div>
-            <div style={{ fontWeight: 600, color: 'var(--primary)' }} className="form-input" style={{backgroundColor: 'var(--pale-green)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.6rem'}}>New</div>
+            <div style={{ fontWeight: 600, color: 'var(--primary)', backgroundColor: 'var(--pale-green)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.6rem' }} className="form-input">New</div>
           </div>
         </div>
 
