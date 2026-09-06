@@ -59,7 +59,8 @@ router.post("/", (req: Request, res: Response) => {
           fileName: req.file.originalname,
           fileSize: req.file.size,
           mimeType: req.file.mimetype,
-          storageUrl: req.file.filename // store filename to retrieve later
+          storageUrl: req.file.filename,
+          ...(req.body.ticketId && { ticketId: req.body.ticketId })
         }
       });
 

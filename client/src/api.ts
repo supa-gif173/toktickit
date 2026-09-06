@@ -144,9 +144,12 @@ export async function createTicket(payload: { summary: string; description: stri
   return res.json();
 }
 
-export async function uploadAttachment(file: File): Promise<Attachment> {
+export async function uploadAttachment(file: File, ticketId?: string): Promise<Attachment> {
   const formData = new FormData();
   formData.append("file", file);
+  if (ticketId) {
+    formData.append("ticketId", ticketId);
+  }
 
   const res = await fetch(`${API_URL}/api/attachments`, {
     method: "POST",

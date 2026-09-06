@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchTicketDetails, Ticket, API_URL } from '../api';
+import { fetchTicketDetails, uploadAttachment, Ticket, API_URL } from '../api';
 import { ArrowLeft, AlertCircle, Download, Paperclip } from 'lucide-react';
 
 const TicketDetail: React.FC = () => {
@@ -8,6 +8,9 @@ const TicketDetail: React.FC = () => {
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -16,6 +19,42 @@ const TicketDetail: React.FC = () => {
       .catch(err => setError(err.message || 'Failed to load ticket details.'))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0 || !id) return;
+    const file = files[0];
+    
+    setUploadError('');
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError(`File ${file.name} exceeds 5MB limit.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+    
+    if (!allowedTypes.includes(file.type) && !allowedExts.includes(ext)) {
+      setUploadError(`File ${file.name} is not a valid type (JPG, PNG, WEBP, PDF).`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const newAttachment = await uploadAttachment(file, id);
+      setTicket(prev => prev ? {
+        ...prev,
+        attachments: [...(prev.attachments || []), newAttachment]
+      } : prev);
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload attachment.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const renderStatusBadge = (status: string) => {
     let bg = '#E5E7EB';
@@ -129,9 +168,23 @@ const TicketDetail: React.FC = () => {
           </div>
 
           <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Paperclip size={18} /> Attachments
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Paperclip size={18} /> Attachments
+              </h3>
+              <button onClick={() => fileInputRef.current?.click()} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', fontSize: '0.85rem' }} disabled={uploading}>
+                {uploading ? 'Uploading...' : 'Add Attachment'}
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                onChange={e => handleFileUpload(e.target.files)}
+              />
+            </div>
+            
+            {uploadError && <div className="form-error-msg" style={{ marginBottom: '1rem' }}>{uploadError}</div>}
             
             {!ticket.attachments || ticket.attachments.length === 0 ? (
               <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontStyle: 'italic' }}>
