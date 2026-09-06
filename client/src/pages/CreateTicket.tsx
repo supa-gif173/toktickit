@@ -19,6 +19,7 @@ const CreateTicket: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [attachmentError, setAttachmentError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
   const [successTicket, setSuccessTicket] = useState<{ id: string, ticketNumber: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,37 +36,45 @@ const CreateTicket: React.FC = () => {
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     
-    setError('');
+    setAttachmentError('');
     const newFiles = Array.from(files);
     
     if (attachments.length + newFiles.length > 5) {
-      setError('Maximum 5 files allowed per ticket.');
+      setAttachmentError('Maximum 5 files allowed per ticket.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
     const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+    
+    let hasError = false;
     const validFiles = newFiles.filter(f => {
       if (f.size > 5 * 1024 * 1024) {
-        setError(`File ${f.name} exceeds 5MB limit.`);
+        setAttachmentError(`File ${f.name} exceeds 5MB limit.`);
+        hasError = true;
         return false;
       }
       const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
       if (!allowedTypes.includes(f.type) && !allowedExts.includes(ext)) {
-        setError(`File ${f.name} is not a valid type (JPG, PNG, WEBP, PDF).`);
+        setAttachmentError(`File ${f.name} is not a valid type (JPG, PNG, WEBP, PDF).`);
+        hasError = true;
         return false;
       }
       return true;
     });
 
-    if (validFiles.length === 0) return;
+    if (hasError || validFiles.length === 0) {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     setUploading(true);
     try {
       const uploaded = await Promise.all(validFiles.map(file => uploadAttachment(file)));
       setAttachments(prev => [...prev, ...uploaded]);
     } catch (err: any) {
-      setError(err.message || 'Failed to upload one or more files.');
+      setAttachmentError(err.message || 'Failed to upload one or more files.');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -123,6 +132,7 @@ const CreateTicket: React.FC = () => {
     setSuccessTicket(null);
     setFieldErrors({});
     setError('');
+    setAttachmentError('');
   };
 
   if (successTicket) {
@@ -257,6 +267,7 @@ const CreateTicket: React.FC = () => {
                 </div>
               )}
             </div>
+            {attachmentError && <div className="form-error-msg" style={{ marginTop: '0.5rem' }}>{attachmentError}</div>}
           </div>
         </div>
 
