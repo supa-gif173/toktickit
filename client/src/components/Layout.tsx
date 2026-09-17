@@ -34,14 +34,36 @@ const Layout: React.FC = () => {
                 <LayoutDashboard size={18} /> Dashboard
               </Link>
               {activeUser.role === 'REQUESTER' && (
+                <>
+                  <Link 
+                    to="/tickets" 
+                    style={{ 
+                      color: location.pathname === '/tickets' ? 'white' : 'rgba(255,255,255,0.7)', 
+                      display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 
+                    }}
+                  >
+                    My Tickets
+                  </Link>
+                  <Link 
+                    to="/tickets/new" 
+                    style={{ 
+                      color: location.pathname === '/tickets/new' ? 'white' : 'rgba(255,255,255,0.7)', 
+                      display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 
+                    }}
+                  >
+                    <PlusCircle size={18} /> New Ticket
+                  </Link>
+                </>
+              )}
+              {(activeUser.role === 'STAFF' || activeUser.role === 'ADMIN') && (
                 <Link 
-                  to="/tickets/new" 
+                  to="/staff/tickets" 
                   style={{ 
-                    color: location.pathname === '/tickets/new' ? 'white' : 'rgba(255,255,255,0.7)', 
+                    color: location.pathname.startsWith('/staff/tickets') ? 'white' : 'rgba(255,255,255,0.7)', 
                     display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 
                   }}
                 >
-                  <PlusCircle size={18} /> New Ticket
+                  IT Ticket Queue
                 </Link>
               )}
             </nav>

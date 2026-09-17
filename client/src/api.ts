@@ -48,9 +48,13 @@ export interface Ticket {
   requesterId: string;
   categoryId: string;
   systemId: string;
+  ownerId?: string | null;
+  requestedPriority: string;
+  itPriority: string;
   createdAt: string;
   updatedAt: string;
-  requester?: Requester;
+  requester?: User;
+  owner?: User;
   category?: Category;
   system?: RelatedSystem;
   attachments?: Attachment[];
@@ -131,6 +135,68 @@ export async function fetchTicketDetails(id: string): Promise<Ticket> {
     }
     throw new Error("Failed to fetch ticket details");
   }
+  return res.json();
+}
+
+export async function fetchStaffTickets(params?: { page?: number; limit?: number; search?: string; status?: string; priority?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }): Promise<{ data: Ticket[]; meta: any }> {
+  const query = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") query.append(key, String(value));
+    });
+  }
+  
+  const res = await fetchApi(`${API_URL}/api/staff/tickets?${query.toString()}`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error("Failed to fetch staff tickets");
+  return res.json();
+}
+
+export async function fetchStaffTicketDetails(id: string): Promise<Ticket> {
+  const res = await fetchApi(`${API_URL}/api/staff/tickets/${id}`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error("Failed to fetch staff ticket details");
+  return res.json();
+}
+
+export async function claimTicket(id: string): Promise<Ticket> {
+  const res = await fetchApi(`${API_URL}/api/staff/tickets/${id}/claim`, {
+    method: 'PATCH',
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error("Failed to claim ticket");
+  return res.json();
+}
+
+export async function assignTicket(id: string, ownerId: string | null): Promise<Ticket> {
+  const res = await fetchApi(`${API_URL}/api/staff/tickets/${id}/assign`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ ownerId })
+  });
+  if (!res.ok) throw new Error("Failed to assign ticket");
+  return res.json();
+}
+
+export async function updateTicketPriority(id: string, itPriority: string): Promise<Ticket> {
+  const res = await fetchApi(`${API_URL}/api/staff/tickets/${id}/priority`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ itPriority })
+  });
+  if (!res.ok) throw new Error("Failed to update ticket priority");
+  return res.json();
+}
+
+export async function updateTicketStatus(id: string, status: string): Promise<Ticket> {
+  const res = await fetchApi(`${API_URL}/api/staff/tickets/${id}/status`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ status })
+  });
+  if (!res.ok) throw new Error("Failed to update ticket status");
   return res.json();
 }
 

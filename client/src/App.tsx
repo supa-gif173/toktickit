@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import MyTickets from './pages/MyTickets';
 import CreateTicket from './pages/CreateTicket';
 import TicketDetail from './pages/TicketDetail';
+import StaffTicketQueue from './pages/StaffTicketQueue';
+import StaffTicketDetail from './pages/StaffTicketDetail';
 
 const ProtectedRoute = ({ children, requireRole }: { children: React.ReactNode, requireRole?: 'REQUESTER' | 'STAFF' | 'ADMIN' }) => {
   const { activeUser, isLoading } = useAuth();
@@ -14,6 +16,13 @@ const ProtectedRoute = ({ children, requireRole }: { children: React.ReactNode, 
   if (!activeUser) return <Navigate to="/login" replace />;
   if (requireRole && activeUser.role !== requireRole) return <Navigate to="/" replace />;
   
+  return <>{children}</>;
+};
+
+const StaffRoute = ({ children }: { children: React.ReactNode }) => {
+  const { activeUser, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!activeUser || (activeUser.role !== 'STAFF' && activeUser.role !== 'ADMIN')) return <Navigate to="/" />;
   return <>{children}</>;
 };
 
@@ -35,7 +44,9 @@ const App: React.FC = () => {
                 <CreateTicket />
               </ProtectedRoute>
             } />
-            <Route path="tickets/:id" element={<TicketDetail />} />
+            <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
+            <Route path="/staff/tickets" element={<StaffRoute><StaffTicketQueue /></StaffRoute>} />
+            <Route path="/staff/tickets/:id" element={<StaffRoute><StaffTicketDetail /></StaffRoute>} />
           </Route>
           
           <Route path="*" element={<Navigate to="/" replace />} />

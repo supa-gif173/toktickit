@@ -18,3 +18,13 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     return res.status(401).json({ error: "Unauthorized", message: "Invalid token" });
   }
 };
+
+export const requireStaffOrAdmin = (req: Request, res: Response, next: NextFunction) => {
+  requireAuth(req, res, () => {
+    const role = res.locals.user?.role;
+    if (role !== "STAFF" && role !== "ADMIN") {
+      return res.status(403).json({ error: "Forbidden", message: "Requires STAFF or ADMIN role" });
+    }
+    next();
+  });
+};
