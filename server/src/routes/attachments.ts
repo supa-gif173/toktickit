@@ -3,10 +3,10 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { getPrisma } from "../prisma.js";
-import { mockAuthMiddleware } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
-router.use(mockAuthMiddleware);
+router.use(requireAuth);
 
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -72,7 +72,7 @@ router.post("/", (req: Request, res: Response) => {
 });
 
 router.get("/:id", async (req: Request, res: Response) => {
-  const requesterId = res.locals.requesterId;
+  const requesterId = res.locals.user.userId;
   const attachmentId = req.params.id;
   const isDownload = req.query.download === "true";
 
@@ -107,7 +107,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 router.delete("/:id", async (req: Request, res: Response) => {
-  const requesterId = res.locals.requesterId;
+  const requesterId = res.locals.user.userId;
   const attachmentId = req.params.id;
 
   try {
