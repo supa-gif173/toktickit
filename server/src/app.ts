@@ -5,6 +5,8 @@ import systemsRouter from "./routes/systems.js";
 import categoriesRouter from "./routes/categories.js";
 import ticketsRouter from "./routes/tickets.js";
 import attachmentsRouter from "./routes/attachments.js";
+import authRouter from "./routes/auth.js";
+import cookieParser from "cookie-parser";
 import { getPrisma } from "./prisma.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
@@ -14,8 +16,9 @@ void getPrisma;
 // Supertest can import `app` without opening a port. Do not merge these files.
 export const app = express();
 
-app.use(cors());          // already wired: lets the Vite dev server call this API
+app.use(cors({ origin: "http://localhost:5173", credentials: true })); // lets the Vite dev server call this API
 app.use(express.json());
+app.use(cookieParser());
 
 // ---------------------------------------------------------------------------
 // Issue 2 — API health check
@@ -29,6 +32,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Modular API Routes
 // ---------------------------------------------------------------------------
+app.use("/api/auth", authRouter);
 app.use("/api/requesters", requestersRouter);
 app.use("/api/systems", systemsRouter);
 app.use("/api/categories", categoriesRouter);

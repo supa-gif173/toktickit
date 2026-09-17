@@ -18,13 +18,22 @@ datasource db {
 //   createdAt DateTime @default(now())
 // Then run:  npx prisma migrate dev --name init
 // TODO(Issue 3): add the Category model below.
-model RequesterUser {
-  id         String   @id @default(uuid())
-  name       String
-  email      String   @unique
-  department String
-  createdAt  DateTime @default(now())
-  tickets    Ticket[]
+enum Role {
+  REQUESTER
+  STAFF
+  ADMIN
+}
+
+model User {
+  id                   String   @id @default(uuid())
+  name                 String
+  email                String   @unique
+  passwordHash         String
+  role                 Role     @default(REQUESTER)
+  isActive             Boolean  @default(true)
+  mustChangePassword   Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  tickets              Ticket[]
 }
 
 model Category {
@@ -55,7 +64,7 @@ model Ticket {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  requester RequesterUser @relation(fields: [requesterId], references: [id])
+  requester User          @relation(fields: [requesterId], references: [id])
   category  Category      @relation(fields: [categoryId], references: [id])
   system    RelatedSystem @relation(fields: [systemId], references: [id])
 

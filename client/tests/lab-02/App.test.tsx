@@ -3,23 +3,19 @@ import { render, screen, waitFor } from "@testing-library/react";
 import App from "../../src/App.js";
 import * as api from "../../src/api.js";
 
-describe("App (Lab 02)", () => {
+describe("App (Lab 02 -> Lab 03 updated)", () => {
   it("renders the loading state initially", () => {
     render(<App />);
-    expect(screen.getByText(/Loading mock requesters.../i)).toBeInTheDocument();
+    expect(screen.getByText(/Loading session.../i)).toBeInTheDocument();
   });
 
-  it("shows the Development Access title after loading", async () => {
-    vi.spyOn(api, "fetchRequesters").mockResolvedValue([
-      { id: "1", name: "Alice", email: "alice@test.com", department: "IT" }
-    ]);
+  it("shows the Login page after loading if not authenticated", async () => {
+    vi.spyOn(api, "fetchMe").mockRejectedValue(new Error('Unauthenticated'));
 
     render(<App />);
     
     await waitFor(() => {
-      expect(screen.getByText(/Development Access/i)).toBeInTheDocument();
+      expect(screen.getByText(/Sign in to your account/i)).toBeInTheDocument();
     });
-    
-    expect(screen.getByText(/Alice/i)).toBeInTheDocument();
   });
 });

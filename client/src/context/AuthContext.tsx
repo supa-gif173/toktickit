@@ -1,48 +1,37 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface Requester {
-  id: string;
-  name: string;
-  email: string;
-  department: string;
-}
+import { User, fetchMe, logout as apiLogout } from '../api';
 
 interface AuthContextType {
-  activeRequester: Requester | null;
-  setActiveRequester: (requester: Requester | null) => void;
+  activeUser: User | null;
+  setActiveUser: (user: User | null) => void;
   isLoading: boolean;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [activeRequester, setActiveRequesterState] = useState<Requester | null>(null);
+  const [activeUser, setActiveUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load from local storage on mount
-    const stored = localStorage.getItem('toktickit_requester');
-    if (stored) {
-      try {
-        setActiveRequesterState(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse stored requester', e);
-      }
-    }
-    setIsLoading(false);
+    fetchMe()
+      .then(data => setActiveUser(data.user))
+      .catch(() => setActiveUser(null))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const setActiveRequester = (requester: Requester | null) => {
-    setActiveRequesterState(requester);
-    if (requester) {
-      localStorage.setItem('toktickit_requester', JSON.stringify(requester));
-    } else {
-      localStorage.removeItem('toktickit_requester');
+  const logout = async () => {
+    try {
+      await apiLogout();
+      setActiveUser(null);
+    } catch (e) {
+      console.error('Logout failed', e);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ activeRequester, setActiveRequester, isLoading }}>
+    <AuthContext.Provider value={{ activeUser, setActiveUser, isLoading, logout }}>
       {children}
     </AuthContext.Provider>
   );
