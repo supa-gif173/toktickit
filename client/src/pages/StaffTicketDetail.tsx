@@ -31,8 +31,8 @@ const StaffTicketDetail: React.FC = () => {
     try {
       const data = await fetchStaffTicketDetails(id!);
       setTicket(data);
-      setStatus(data.status);
-      setPriority(data.itPriority);
+      setStatus(data.status.toUpperCase());
+      setPriority(data.itPriority.toUpperCase());
     } catch (err: any) {
       setError(err.message || 'Failed to load ticket details.');
     } finally {

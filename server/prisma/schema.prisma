@@ -58,13 +58,13 @@ model Ticket {
   ticketNumber String   @unique
   summary      String
   description  String
-  status       String   @default("New")
+  status       String   @default("NEW")
   requesterId       String
   ownerId           String?
   categoryId        String
   systemId          String
-  requestedPriority String   @default("Low")
-  itPriority        String   @default("Low")
+  requestedPriority String   @default("LOW")
+  itPriority        String   @default("LOW")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

@@ -33,7 +33,7 @@ describe("Staff Queue API (Sprint 3)", () => {
         ticketNumber: "INC-TEST",
         summary: "Test summary",
         description: "Test description",
-        status: "New",
+        status: "NEW",
         requesterId: reqUser.id,
         categoryId: category.id,
         systemId: system.id

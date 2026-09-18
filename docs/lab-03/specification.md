@@ -51,7 +51,15 @@ The stakeholders require real user authentication and authorization to replace t
 *   **BR-10:** Each Ticket may have zero or one primary Ticket Owner, who must be an active IT Staff or Administrator user.
 *   **BR-11:** Requested Priority remains the value submitted by the Requester. IT Priority initially copies Requested Priority and may later be changed only by IT Staff or Administrator.
 *   **BR-12:** Users must be deactivated instead of deleted.
-
+*   **BR-13:** Ticket statuses must follow the Status Transition Matrix:
+    *   **NEW:** OPEN, IN_PROGRESS, CANCELLED, RESOLVED, CLOSED
+    *   **OPEN:** IN_PROGRESS, WAITING_FOR_REQUESTER, RESOLVED, CANCELLED, CLOSED
+    *   **IN_PROGRESS:** WAITING_FOR_REQUESTER, RESOLVED, CANCELLED, CLOSED, OPEN
+    *   **WAITING_FOR_REQUESTER:** IN_PROGRESS, RESOLVED, CANCELLED, CLOSED, OPEN
+    *   **RESOLVED:** CLOSED, REOPENED
+    *   **CLOSED:** REOPENED
+    *   **REOPENED:** IN_PROGRESS, WAITING_FOR_REQUESTER, RESOLVED, CANCELLED, CLOSED
+    *   **CANCELLED:** (none)
 ## 6. UI Specification Summary
 The UI will continue using the Zen Green design language established in Lab 2. New screens and modifications will blend seamlessly with the existing visual system. 
 *   **Login & Password Change:** Secure login form with validation, busy states, and safe failure feedback. Mandatory password change screen enforcing password rules.
