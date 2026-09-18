@@ -76,7 +76,7 @@ router.post("/users", async (req: Request, res: Response) => {
 
     const user = await prisma.user.create({
       data: {
-        name,
+        name: name.trim(),
         email,
         role,
         isActive: isActive !== undefined ? isActive : true,
@@ -147,7 +147,7 @@ router.patch("/users/:id", async (req: Request, res: Response) => {
     }
 
     const updateData: any = {};
-    if (name) updateData.name = name;
+    if (name) updateData.name = name.trim();
     if (email) updateData.email = email;
     if (role) updateData.role = role;
     if (isActive !== undefined) updateData.isActive = isActive;

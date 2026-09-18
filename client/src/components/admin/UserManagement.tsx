@@ -211,7 +211,7 @@ const UserManagement: React.FC = () => {
                       className="btn-secondary"
                       style={{ padding: '0.4rem 0.8rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}
                     >
-                      <Edit2 size={14} /> Edit
+                      <Edit2 size={14} /> Edit / Reset Password
                     </button>
                   </td>
                 </tr>
@@ -248,7 +248,7 @@ const UserManagement: React.FC = () => {
                     className="btn-secondary"
                     style={{ padding: '0.3rem 0.6rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}
                   >
-                    <Edit2 size={14} /> Edit
+                    <Edit2 size={14} /> Edit / Reset Password
                   </button>
                 </div>
               </div>

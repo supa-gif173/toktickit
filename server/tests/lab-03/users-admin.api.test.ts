@@ -176,4 +176,22 @@ describe("Admin User Management API (Sprint 3)", () => {
       .send({ email: "not-an-email" });
     expect(res.status).toBe(400);
   });
+
+  it("Rejects user update with whitespace-only name", async () => {
+    const res = await request(app)
+      .patch(`/api/admin/users/${targetUser.id}`)
+      .set("Cookie", adminToken)
+      .send({ name: "   " });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/non-empty string/i);
+  });
+
+  it("Rejects user update with invalid role", async () => {
+    const res = await request(app)
+      .patch(`/api/admin/users/${targetUser.id}`)
+      .set("Cookie", adminToken)
+      .send({ role: "SUPERADMIN" });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/Role must be/i);
+  });
 });
