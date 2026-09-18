@@ -46,7 +46,21 @@ router.get("/users", async (req: Request, res: Response) => {
 router.post("/users", async (req: Request, res: Response) => {
   const { name, email, role, isActive, password } = req.body;
 
-  if (!name || !email || !role || !password) {
+  if (!name || typeof name !== "string" || name.trim() === "") {
+    return res.status(400).json({ error: "Bad Request", message: "Name must be a non-empty string" });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || typeof email !== "string" || !emailRegex.test(email)) {
+    return res.status(400).json({ error: "Bad Request", message: "Valid email is required" });
+  }
+
+  const allowedRoles = ["REQUESTER", "STAFF", "ADMIN"];
+  if (!role || !allowedRoles.includes(role)) {
+    return res.status(400).json({ error: "Bad Request", message: "Role must be REQUESTER, STAFF, or ADMIN" });
+  }
+
+  if (!password) {
     return res.status(400).json({ error: "Bad Request", message: "Missing required fields" });
   }
 
@@ -89,6 +103,26 @@ router.patch("/users/:id", async (req: Request, res: Response) => {
     const targetUser = await prisma.user.findUnique({ where: { id } });
     if (!targetUser) {
       return res.status(404).json({ error: "Not Found", message: "User not found" });
+    }
+
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim() === "") {
+        return res.status(400).json({ error: "Bad Request", message: "Name must be a non-empty string" });
+      }
+    }
+
+    if (email !== undefined) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (typeof email !== "string" || !emailRegex.test(email)) {
+        return res.status(400).json({ error: "Bad Request", message: "Valid email is required" });
+      }
+    }
+
+    if (role !== undefined) {
+      const allowedRoles = ["REQUESTER", "STAFF", "ADMIN"];
+      if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ error: "Bad Request", message: "Role must be REQUESTER, STAFF, or ADMIN" });
+      }
     }
 
     // Safety rules

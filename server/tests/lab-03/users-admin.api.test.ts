@@ -141,4 +141,39 @@ describe("Admin User Management API (Sprint 3)", () => {
     
     expect(resDeact.status).toBe(200);
   });
+
+  it("Rejects user creation with whitespace-only name", async () => {
+    const res = await request(app)
+      .post("/api/admin/users")
+      .set("Cookie", adminToken)
+      .send({ name: "   ", email: "badname@example.com", role: "STAFF", password: "Pass" });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/non-empty string/i);
+  });
+
+  it("Rejects user creation with malformed email", async () => {
+    const res = await request(app)
+      .post("/api/admin/users")
+      .set("Cookie", adminToken)
+      .send({ name: "Test", email: "invalid-email", role: "STAFF", password: "Pass" });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/valid email/i);
+  });
+
+  it("Rejects user creation with invalid role", async () => {
+    const res = await request(app)
+      .post("/api/admin/users")
+      .set("Cookie", adminToken)
+      .send({ name: "Test", email: "badrole@example.com", role: "SUPERADMIN", password: "Pass" });
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/Role must be/i);
+  });
+
+  it("Rejects user update with invalid email", async () => {
+    const res = await request(app)
+      .patch(`/api/admin/users/${targetUser.id}`)
+      .set("Cookie", adminToken)
+      .send({ email: "not-an-email" });
+    expect(res.status).toBe(400);
+  });
 });

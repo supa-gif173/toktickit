@@ -179,6 +179,7 @@ const UserManagement: React.FC = () => {
         <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading users...</div>
       ) : (
         <div style={{ backgroundColor: 'var(--surface)', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+          {/* Desktop Table */}
           <table className="desktop-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead style={{ backgroundColor: 'var(--pale-green)', borderBottom: '2px solid var(--border)' }}>
               <tr>
@@ -224,6 +225,40 @@ const UserManagement: React.FC = () => {
               )}
             </tbody>
           </table>
+
+          {/* Mobile Cards */}
+          <div className="mobile-cards">
+            {users.map(u => (
+              <div key={u.id} className="mobile-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <strong style={{ fontSize: '1.1rem', color: 'var(--primary)' }}>
+                    {u.name} {(u.id === activeUser?.id) && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>(You)</span>}
+                  </strong>
+                  {(u as any).isActive ? (
+                    <span style={{ color: 'var(--success)', fontWeight: 500, fontSize: '0.85rem' }}>Active</span>
+                  ) : (
+                    <span style={{ color: 'var(--error)', fontWeight: 500, fontSize: '0.85rem' }}>Inactive</span>
+                  )}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>{u.email}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                  {getRoleBadge(u.role)}
+                  <button 
+                    onClick={() => openEditModal(u)}
+                    className="btn-secondary"
+                    style={{ padding: '0.3rem 0.6rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem' }}
+                  >
+                    <Edit2 size={14} /> Edit
+                  </button>
+                </div>
+              </div>
+            ))}
+            {users.length === 0 && (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                No users found matching your criteria.
+              </div>
+            )}
+          </div>
         </div>
       )}
 
