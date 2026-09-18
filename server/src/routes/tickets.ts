@@ -29,7 +29,7 @@ router.post("/", async (req: Request, res: Response) => {
         ticketNumber,
         summary,
         description,
-        status: "New",
+        status: "NEW",
         requesterId,
         categoryId,
         systemId,
