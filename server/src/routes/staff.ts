@@ -117,6 +117,19 @@ router.patch("/tickets/:id/assign", async (req: Request, res: Response) => {
   const { ownerId } = req.body;
 
   try {
+    if (ownerId) {
+      const targetUser = await getPrisma().user.findUnique({ where: { id: ownerId } });
+      if (!targetUser) {
+        return res.status(404).json({ error: "Not Found", message: "User not found" });
+      }
+      if (!targetUser.isActive) {
+        return res.status(400).json({ error: "Bad Request", message: "Cannot assign to an inactive user" });
+      }
+      if (targetUser.role !== "STAFF" && targetUser.role !== "ADMIN") {
+        return res.status(400).json({ error: "Bad Request", message: "Can only assign to STAFF or ADMIN users" });
+      }
+    }
+
     const ticket = await getPrisma().ticket.update({
       where: { id: ticketId },
       data: { ownerId: ownerId || null }
@@ -137,17 +150,21 @@ router.patch("/tickets/:id/assign", async (req: Request, res: Response) => {
 
 // PATCH /api/staff/tickets/:id/priority
 router.patch("/tickets/:id/priority", async (req: Request, res: Response) => {
-  const ticketId = req.params.id;
-  const { itPriority } = req.body;
-
-  if (!itPriority) {
-    return res.status(400).json({ error: "Bad Request", message: "Missing itPriority" });
-  }
-
   try {
+    const { itPriority } = req.body;
+    if (!itPriority) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const allowedPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+    const normalizedPriority = itPriority.toUpperCase();
+    if (!allowedPriorities.includes(normalizedPriority)) {
+      return res.status(400).json({ error: "Invalid priority value" });
+    }
+
     const ticket = await getPrisma().ticket.update({
-      where: { id: ticketId },
-      data: { itPriority }
+      where: { id: req.params.id },
+      data: { itPriority: normalizedPriority }
     });
 
     res.status(200).json(ticket);
@@ -169,9 +186,38 @@ router.patch("/tickets/:id/status", async (req: Request, res: Response) => {
   }
 
   try {
+    const normalizedStatus = status.toUpperCase().replace(" ", "_");
+    const allowedStatuses = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
+    
+    if (!allowedStatuses.includes(normalizedStatus)) {
+      return res.status(400).json({ error: "Bad Request", message: "Invalid status value" });
+    }
+
+    const existingTicket = await getPrisma().ticket.findUnique({ where: { id: ticketId } });
+    if (!existingTicket) {
+      return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
+    }
+
+    const currentStatus = existingTicket.status.toUpperCase().replace(" ", "_");
+    
+    const transitionMatrix: Record<string, string[]> = {
+      NEW: ["OPEN", "IN_PROGRESS", "CANCELLED", "RESOLVED", "CLOSED"],
+      OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED"],
+      IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED", "OPEN"],
+      WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED", "CLOSED", "OPEN"],
+      RESOLVED: ["CLOSED", "REOPENED"],
+      CLOSED: ["REOPENED"],
+      REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED"],
+      CANCELLED: []
+    };
+
+    if (currentStatus !== normalizedStatus && (!transitionMatrix[currentStatus] || !transitionMatrix[currentStatus].includes(normalizedStatus))) {
+      return res.status(400).json({ error: "Bad Request", message: "Invalid status transition" });
+    }
+
     const ticket = await getPrisma().ticket.update({
       where: { id: ticketId },
-      data: { status }
+      data: { status: normalizedStatus }
     });
 
     res.status(200).json(ticket);

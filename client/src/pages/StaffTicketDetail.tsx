@@ -263,10 +263,27 @@ const StaffTicketDetail: React.FC = () => {
                 onChange={e => handleStatusChange(e.target.value)}
                 disabled={actionLoading}
               >
-                <option value="New">New</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Resolved">Resolved</option>
-                <option value="Closed">Closed</option>
+                {(() => {
+                  const currentStatus = ticket.status.toUpperCase().replace(" ", "_");
+                  const transitionMatrix: Record<string, string[]> = {
+                    NEW: ["OPEN", "IN_PROGRESS", "CANCELLED", "RESOLVED", "CLOSED"],
+                    OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED"],
+                    IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED", "OPEN"],
+                    WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED", "CLOSED", "OPEN"],
+                    RESOLVED: ["CLOSED", "REOPENED"],
+                    CLOSED: ["REOPENED"],
+                    REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED"],
+                    CANCELLED: []
+                  };
+                  
+                  const allStatuses = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
+                  const allowed = transitionMatrix[currentStatus] || [];
+                  
+                  // Always include the current status as an option
+                  return allStatuses
+                    .filter(s => s === currentStatus || allowed.includes(s))
+                    .map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>);
+                })()}
               </select>
             </div>
 
@@ -274,13 +291,14 @@ const StaffTicketDetail: React.FC = () => {
               <label className="form-label">IT Priority</label>
               <select 
                 className="form-select" 
-                value={priority}
+                value={priority.toUpperCase()}
                 onChange={e => handlePriorityChange(e.target.value)}
                 disabled={actionLoading}
               >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                <option value="URGENT">Urgent</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
               </select>
             </div>
             

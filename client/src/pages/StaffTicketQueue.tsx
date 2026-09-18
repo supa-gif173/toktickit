@@ -56,19 +56,25 @@ const StaffTicketQueue: React.FC = () => {
   };
 
   const getStatusColor = (s: string) => {
-    switch(s) {
-      case 'New': return 'var(--primary)';
-      case 'In Progress': return 'var(--warning)';
-      case 'Resolved': return 'var(--success)';
+    switch(s.toUpperCase()) {
+      case 'NEW': return 'var(--primary)';
+      case 'IN_PROGRESS': return 'var(--warning)';
+      case 'RESOLVED': return 'var(--success)';
+      case 'CLOSED': return 'var(--text-secondary)';
+      case 'OPEN': return 'var(--primary)';
+      case 'WAITING_FOR_REQUESTER': return 'var(--warning)';
+      case 'REOPENED': return 'var(--error)';
+      case 'CANCELLED': return 'var(--text-secondary)';
       default: return 'var(--text-secondary)';
     }
   };
 
   const getPriorityColor = (p: string) => {
-    switch(p) {
-      case 'High': return 'var(--error)';
-      case 'Medium': return 'var(--warning)';
-      case 'Low': return 'var(--success)';
+    switch(p.toUpperCase()) {
+      case 'URGENT': return 'var(--error)';
+      case 'HIGH': return 'var(--error)';
+      case 'MEDIUM': return 'var(--warning)';
+      case 'LOW': return 'var(--success)';
       default: return 'var(--text-secondary)';
     }
   };
@@ -101,17 +107,22 @@ const StaffTicketQueue: React.FC = () => {
           <Filter size={18} style={{ color: 'var(--text-secondary)' }} />
           <select className="form-select" value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
             <option value="">All Statuses</option>
-            <option value="New">New</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Closed">Closed</option>
+            <option value="NEW">New</option>
+            <option value="OPEN">Open</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="WAITING_FOR_REQUESTER">Waiting for Requester</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="CLOSED">Closed</option>
+            <option value="REOPENED">Reopened</option>
+            <option value="CANCELLED">Cancelled</option>
           </select>
 
           <select className="form-select" value={priority} onChange={(e) => { setPriority(e.target.value); setPage(1); }}>
             <option value="">All Priorities</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
+            <option value="URGENT">Urgent</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
           </select>
 
           <button type="button" className="btn-secondary" onClick={clearFilters}>Clear</button>
