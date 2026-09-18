@@ -49,7 +49,7 @@ test.describe('IT Staff Ticket Workflow', () => {
     
     // 3. Look for a ticket and click it
     // We assume there's at least one ticket seeded by other tests or the backend
-    await expect(page.locator('table, .mobile-cards')).toBeVisible();
+    await expect(page.locator('.desktop-table, .mobile-cards').first()).toBeVisible();
     
     // Click the first ticket
     await page.locator('tr.queue-row, .mobile-card').first().click();

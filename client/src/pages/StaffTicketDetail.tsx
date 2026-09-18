@@ -280,9 +280,10 @@ const StaffTicketDetail: React.FC = () => {
                   const allowed = transitionMatrix[currentStatus] || [];
                   
                   // Always include the current status as an option
+                  const formatLabel = (str: string) => str.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
                   return allStatuses
                     .filter(s => s === currentStatus || allowed.includes(s))
-                    .map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>);
+                    .map(s => <option key={s} value={s}>{formatLabel(s)}</option>);
                 })()}
               </select>
             </div>

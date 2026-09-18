@@ -54,19 +54,56 @@ async function main() {
     await prisma.user.upsert({
       where: { email: user.email },
       update: {
-        mustChangePassword: user.email === "req1@example.com" ? false : true,
+        mustChangePassword: ["req1@example.com", "staff1@example.com", "admin1@example.com"].includes(user.email) ? false : true,
       },
       create: {
         email: user.email,
         name: user.name,
         role: user.role,
         isActive: user.isActive,
-        mustChangePassword: user.email === "req1@example.com" ? false : true,
+        mustChangePassword: ["req1@example.com", "staff1@example.com", "admin1@example.com"].includes(user.email) ? false : true,
         passwordHash: passwordHash,
       },
     });
   }
   
+  // Ensure legacy data normalization for any seeded/existing tickets
+  // And seed at least one ticket for tests
+  const req1 = await prisma.user.findUnique({ where: { email: "req1@example.com" } });
+  const cat1 = await prisma.category.findFirst();
+  const sys1 = await prisma.relatedSystem.findFirst();
+
+  if (req1 && cat1 && sys1) {
+    await prisma.ticket.upsert({
+      where: { ticketNumber: "TKT-0001" },
+      update: {},
+      create: {
+        ticketNumber: "TKT-0001",
+        summary: "Test Ticket",
+        description: "Test description",
+        status: "NEW",
+        requestedPriority: "LOW",
+        itPriority: "LOW",
+        requesterId: req1.id,
+        categoryId: cat1.id,
+        systemId: sys1.id
+      }
+    });
+  }
+
+  await prisma.ticket.updateMany({
+    where: { status: "New" },
+    data: { status: "NEW" },
+  });
+  await prisma.ticket.updateMany({
+    where: { requestedPriority: "Low" },
+    data: { requestedPriority: "LOW" },
+  });
+  await prisma.ticket.updateMany({
+    where: { itPriority: "Low" },
+    data: { itPriority: "LOW" },
+  });
+
   console.log("Database seed completed successfully.");
 }
 

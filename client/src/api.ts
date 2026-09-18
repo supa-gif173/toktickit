@@ -275,3 +275,44 @@ export async function changePassword(currentPassword: string, newPassword: strin
     throw new Error(data.error || 'Failed to change password');
   }
 }
+
+export async function fetchAdminUsers(params?: { search?: string; role?: string }): Promise<User[]> {
+  const query = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") query.append(key, String(value));
+    });
+  }
+  
+  const res = await fetchApi(`${API_URL}/api/admin/users?${query.toString()}`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) throw new Error("Failed to fetch users");
+  return res.json();
+}
+
+export async function createAdminUser(payload: { name: string; email: string; role: string; isActive: boolean; password?: string }): Promise<User> {
+  const res = await fetchApi(`${API_URL}/api/admin/users`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to create user");
+  }
+  return res.json();
+}
+
+export async function updateAdminUser(id: string, payload: { name?: string; email?: string; role?: string; isActive?: boolean; password?: string }): Promise<User> {
+  const res = await fetchApi(`${API_URL}/api/admin/users/${id}`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to update user");
+  }
+  return res.json();
+}
