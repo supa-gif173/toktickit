@@ -2,18 +2,35 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
-import RequesterSelection from './pages/RequesterSelection';
+import Login from './pages/Login';
 import MyTickets from './pages/MyTickets';
 import CreateTicket from './pages/CreateTicket';
 import TicketDetail from './pages/TicketDetail';
+import StaffTicketQueue from './pages/StaffTicketQueue';
+import StaffTicketDetail from './pages/StaffTicketDetail';
+import UserManagement from './components/admin/UserManagement';
 
-// Protected Route wrapper
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { activeRequester, isLoading } = useAuth();
+const ProtectedRoute = ({ children, requireRole }: { children: React.ReactNode, requireRole?: 'REQUESTER' | 'STAFF' | 'ADMIN' }) => {
+  const { activeUser, isLoading } = useAuth();
   
   if (isLoading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Loading session...</div>;
-  if (!activeRequester) return <Navigate to="/login" replace />;
+  if (!activeUser) return <Navigate to="/login" replace />;
+  if (requireRole && activeUser.role !== requireRole) return <Navigate to="/" replace />;
   
+  return <>{children}</>;
+};
+
+const StaffRoute = ({ children }: { children: React.ReactNode }) => {
+  const { activeUser, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!activeUser || (activeUser.role !== 'STAFF' && activeUser.role !== 'ADMIN')) return <Navigate to="/" />;
+  return <>{children}</>;
+};
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { activeUser, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!activeUser || activeUser.role !== 'ADMIN') return <Navigate to="/" />;
   return <>{children}</>;
 };
 
@@ -22,7 +39,7 @@ const App: React.FC = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<RequesterSelection />} />
+          <Route path="/login" element={<Login />} />
           
           <Route path="/" element={
             <ProtectedRoute>
@@ -30,8 +47,15 @@ const App: React.FC = () => {
             </ProtectedRoute>
           }>
             <Route index element={<MyTickets />} />
-            <Route path="tickets/new" element={<CreateTicket />} />
-            <Route path="tickets/:id" element={<TicketDetail />} />
+            <Route path="tickets/new" element={
+              <ProtectedRoute requireRole="REQUESTER">
+                <CreateTicket />
+              </ProtectedRoute>
+            } />
+            <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetail /></ProtectedRoute>} />
+            <Route path="/staff/tickets" element={<StaffRoute><StaffTicketQueue /></StaffRoute>} />
+            <Route path="/staff/tickets/:id" element={<StaffRoute><StaffTicketDetail /></StaffRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
           </Route>
           
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -75,17 +75,7 @@ const TicketDetail: React.FC = () => {
   };
 
   const handleDownload = (attachmentId: string) => {
-    // We cannot just use a generic href because we need the X-Requester-Id header for auth.
-    // However, fetch with blob is possible.
-    const stored = localStorage.getItem('toktickit_requester');
-    let requesterId = '';
-    if (stored) {
-      try { requesterId = JSON.parse(stored).id; } catch (e) {}
-    }
-
-    fetch(`${API_URL}/api/attachments/${attachmentId}?download=true`, {
-      headers: { 'X-Requester-Id': requesterId }
-    })
+    fetch(`${API_URL}/api/attachments/${attachmentId}?download=true`)
     .then(res => {
       if (!res.ok) throw new Error('Failed to download');
       const filename = res.headers.get('Content-Disposition')?.split('filename="')[1]?.split('"')[0] || 'download';

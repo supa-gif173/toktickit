@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Ticket" ALTER COLUMN "status" SET DEFAULT 'NEW',
+ALTER COLUMN "itPriority" SET DEFAULT 'LOW',
+ALTER COLUMN "requestedPriority" SET DEFAULT 'LOW';

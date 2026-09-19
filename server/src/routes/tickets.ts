@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
 import { getPrisma } from "../prisma.js";
-import { mockAuthMiddleware } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
-router.use(mockAuthMiddleware);
+router.use(requireAuth);
 
 router.post("/", async (req: Request, res: Response) => {
-  const requesterId = res.locals.requesterId;
+  const requesterId = res.locals.user.userId;
   const { summary, description, categoryId, systemId, attachments } = req.body;
 
   if (!summary || !description || !categoryId || !systemId) {
@@ -29,7 +29,7 @@ router.post("/", async (req: Request, res: Response) => {
         ticketNumber,
         summary,
         description,
-        status: "New",
+        status: "NEW",
         requesterId,
         categoryId,
         systemId,
@@ -49,7 +49,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 router.get("/", async (req: Request, res: Response) => {
-  const requesterId = res.locals.requesterId;
+  const requesterId = res.locals.user.userId;
   const { page = 1, limit = 10, search, status, category, sortBy = "createdAt", sortOrder = "desc" } = req.query;
 
   const pageNum = parseInt(page as string, 10) || 1;
@@ -100,7 +100,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.get("/:id", async (req: Request, res: Response) => {
-  const requesterId = res.locals.requesterId;
+  const requesterId = res.locals.user.userId;
   const ticketId = req.params.id;
 
   try {
