@@ -38,3 +38,13 @@ export const requireStaffOrAdmin = (req: Request, res: Response, next: NextFunct
     next();
   });
 };
+
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+  requireAuth(req, res, () => {
+    const role = res.locals.user?.role;
+    if (role !== "ADMIN") {
+      return res.status(403).json({ error: "Forbidden", message: "Requires ADMIN role" });
+    }
+    next();
+  });
+};

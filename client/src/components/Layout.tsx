@@ -66,6 +66,17 @@ const Layout: React.FC = () => {
                   IT Ticket Queue
                 </Link>
               )}
+              {activeUser.role === 'ADMIN' && (
+                <Link 
+                  to="/admin/users" 
+                  style={{ 
+                    color: location.pathname.startsWith('/admin/users') ? 'white' : 'rgba(255,255,255,0.7)', 
+                    display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 500 
+                  }}
+                >
+                  Manage Users
+                </Link>
+              )}
             </nav>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

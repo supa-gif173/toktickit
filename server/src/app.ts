@@ -7,6 +7,7 @@ import ticketsRouter from "./routes/tickets.js";
 import attachmentsRouter from "./routes/attachments.js";
 import authRouter from "./routes/auth.js";
 import staffRouter from "./routes/staff.js";
+import adminRouter from "./routes/admin.js";
 import cookieParser from "cookie-parser";
 import { getPrisma } from "./prisma.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
@@ -35,6 +36,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 app.use("/api/auth", authRouter);
 app.use("/api/staff", staffRouter);
+app.use("/api/admin", adminRouter);
 app.use("/api/requesters", requestersRouter);
 app.use("/api/systems", systemsRouter);
 app.use("/api/categories", categoriesRouter);
