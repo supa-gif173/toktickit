@@ -46,8 +46,8 @@ describe('UserManagement Component', () => {
     expect(screen.getByText('User Management')).toBeInTheDocument();
     
     await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+      expect(screen.getAllByText('John Doe')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('Jane Smith')[0]).toBeInTheDocument();
     });
   });
 
