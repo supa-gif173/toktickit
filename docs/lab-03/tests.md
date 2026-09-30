@@ -28,6 +28,7 @@ This test plan covers the required Test DD and TDD approach for Sprint 3, ensuri
 | UI-02 | Unit/UI | AC-02 | Change Password validation | Requires upper, lower, number, min 8 chars | `client/tests/lab-03/ChangePassword.test.tsx` | Pass |
 | UI-03 | Unit/UI | FR-05 | IT Queue renders correctly | Table columns, search, pagination present | `client/tests/lab-03/StaffTicketQueue.test.tsx` | Pass |
 | UI-04 | Unit/UI | FR-07 | Admin User list displays properly | Data maps to table rows, Edit button exists | `client/tests/lab-03/UserManagement.test.tsx` | Pass |
+| UI-05 | Unit/UI | FR-06 | Staff Ticket Detail operations | Renders detail, claims ticket, updates status/priority | `client/tests/lab-03/StaffTicketDetail.test.tsx` | Pass |
 
 ## 4. End-to-End (E2E) Tests
 

@@ -35,6 +35,8 @@ model User {
   createdAt            DateTime @default(now())
   tickets              Ticket[] @relation("TicketRequester")
   ownedTickets         Ticket[] @relation("TicketOwner")
+  comments             Comment[]
+  internalNotes        InternalNote[]
 }
 
 model Category {
@@ -74,6 +76,30 @@ model Ticket {
   system    RelatedSystem @relation(fields: [systemId], references: [id])
 
   attachments Attachment[]
+  comments    Comment[]
+  internalNotes InternalNote[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model InternalNote {
+  id        String   @id @default(uuid())
+  ticketId  String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Attachment {
