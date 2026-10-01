@@ -54,6 +54,7 @@ async function main() {
     await prisma.user.upsert({
       where: { email: user.email },
       update: {
+        passwordHash: passwordHash,
         mustChangePassword: ["req1@example.com", "staff1@example.com", "admin1@example.com"].includes(user.email) ? false : true,
       },
       create: {
