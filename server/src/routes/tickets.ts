@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
 import { getPrisma } from "../prisma.js";
-import { mockAuthMiddleware } from "../middleware/auth.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
-router.use(mockAuthMiddleware);
+router.use(requireAuth);
 
 router.post("/", async (req: Request, res: Response) => {
-  const requesterId = res.locals.requesterId;
+  const requesterId = res.locals.user.userId;
   const { summary, description, categoryId, systemId, attachments } = req.body;
 
   if (!summary || !description || !categoryId || !systemId) {
@@ -29,7 +29,7 @@ router.post("/", async (req: Request, res: Response) => {
         ticketNumber,
         summary,
         description,
-        status: "New",
+        status: "NEW",
         requesterId,
         categoryId,
         systemId,
@@ -49,7 +49,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 router.get("/", async (req: Request, res: Response) => {
-  const requesterId = res.locals.requesterId;
+  const requesterId = res.locals.user.userId;
   const { page = 1, limit = 10, search, status, category, sortBy = "createdAt", sortOrder = "desc" } = req.query;
 
   const pageNum = parseInt(page as string, 10) || 1;
@@ -100,7 +100,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 router.get("/:id", async (req: Request, res: Response) => {
-  const requesterId = res.locals.requesterId;
+  const requesterId = res.locals.user.userId;
   const ticketId = req.params.id;
 
   try {
@@ -118,11 +118,166 @@ router.get("/:id", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
     }
 
-    if (ticket.requesterId !== requesterId) {
+    if (res.locals.user.role === "REQUESTER" && ticket.requesterId !== requesterId) {
       return res.status(403).json({ error: "Forbidden", message: "You do not own this ticket" });
     }
 
     res.status(200).json(ticket);
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// GET /api/tickets/:id/comments
+router.get("/:id/comments", async (req: Request, res: Response) => {
+  const userId = res.locals.user.userId;
+  const userRole = res.locals.user.role;
+  const ticketId = req.params.id;
+
+  try {
+    const ticket = await getPrisma().ticket.findUnique({
+      where: { id: ticketId }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
+    }
+
+    if (userRole === "REQUESTER" && ticket.requesterId !== userId) {
+      return res.status(403).json({ error: "Forbidden", message: "You do not own this ticket" });
+    }
+
+    const comments = await getPrisma().comment.findMany({
+      where: { ticketId },
+      orderBy: { createdAt: "asc" },
+      include: {
+        author: { select: { id: true, name: true, role: true } }
+      }
+    });
+
+    res.status(200).json(comments);
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// POST /api/tickets/:id/comments
+router.post("/:id/comments", async (req: Request, res: Response) => {
+  const userId = res.locals.user.userId;
+  const userRole = res.locals.user.role;
+  const ticketId = req.params.id;
+  const { content } = req.body;
+
+  if (!content || typeof content !== "string" || content.trim().length === 0) {
+    return res.status(400).json({ error: "Bad Request", message: "Comment content cannot be empty" });
+  }
+
+  if (content.length > 2000) {
+    return res.status(400).json({ error: "Bad Request", message: "Comment content exceeds limit of 2000 characters" });
+  }
+
+  try {
+    const ticket = await getPrisma().ticket.findUnique({
+      where: { id: ticketId }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
+    }
+
+    if (userRole === "REQUESTER" && ticket.requesterId !== userId) {
+      return res.status(403).json({ error: "Forbidden", message: "You do not own this ticket" });
+    }
+
+    const comment = await getPrisma().comment.create({
+      data: {
+        ticketId,
+        authorId: userId,
+        content: content.trim()
+      },
+      include: {
+        author: { select: { id: true, name: true, role: true } }
+      }
+    });
+
+    res.status(201).json(comment);
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// GET /api/tickets/:id/notes
+router.get("/:id/notes", async (req: Request, res: Response) => {
+  const userRole = res.locals.user.role;
+  const ticketId = req.params.id;
+
+  if (userRole !== "STAFF" && userRole !== "ADMIN") {
+    return res.status(403).json({ error: "Forbidden", message: "Internal notes are restricted to IT Staff and Administrators" });
+  }
+
+  try {
+    const ticket = await getPrisma().ticket.findUnique({
+      where: { id: ticketId }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
+    }
+
+    const notes = await getPrisma().internalNote.findMany({
+      where: { ticketId },
+      orderBy: { createdAt: "asc" },
+      include: {
+        author: { select: { id: true, name: true, role: true } }
+      }
+    });
+
+    res.status(200).json(notes);
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// POST /api/tickets/:id/notes
+router.post("/:id/notes", async (req: Request, res: Response) => {
+  const userId = res.locals.user.userId;
+  const userRole = res.locals.user.role;
+  const ticketId = req.params.id;
+  const { content } = req.body;
+
+  if (userRole !== "STAFF" && userRole !== "ADMIN") {
+    return res.status(403).json({ error: "Forbidden", message: "Internal notes are restricted to IT Staff and Administrators" });
+  }
+
+  if (!content || typeof content !== "string" || content.trim().length === 0) {
+    return res.status(400).json({ error: "Bad Request", message: "Note content cannot be empty" });
+  }
+
+  if (content.length > 2000) {
+    return res.status(400).json({ error: "Bad Request", message: "Note content exceeds limit of 2000 characters" });
+  }
+
+  try {
+    const ticket = await getPrisma().ticket.findUnique({
+      where: { id: ticketId }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
+    }
+
+    const note = await getPrisma().internalNote.create({
+      data: {
+        ticketId,
+        authorId: userId,
+        content: content.trim()
+      },
+      include: {
+        author: { select: { id: true, name: true, role: true } }
+      }
+    });
+
+    res.status(201).json(note);
   } catch (error: any) {
     res.status(500).json({ error: "Internal Server Error" });
   }

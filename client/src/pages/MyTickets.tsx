@@ -88,9 +88,9 @@ const MyTickets: React.FC = () => {
   const renderStatusBadge = (status: string) => {
     let bg = '#E5E7EB';
     let color = '#374151';
-    if (status === 'New') { bg = '#EAF6EF'; color = 'var(--primary)'; }
-    else if (status === 'In Progress') { bg = '#FEF3C7'; color = '#B45309'; }
-    else if (status === 'Resolved') { bg = '#D1FAE5'; color = '#065F46'; }
+    if (status === 'NEW') { bg = '#EAF6EF'; color = 'var(--primary)'; }
+    else if (status === 'IN_PROGRESS') { bg = '#FEF3C7'; color = '#B45309'; }
+    else if (status === 'RESOLVED') { bg = '#D1FAE5'; color = '#065F46'; }
     
     return (
       <span style={{ 
@@ -98,7 +98,7 @@ const MyTickets: React.FC = () => {
         padding: '0.2rem 0.6rem', borderRadius: '9999px', 
         fontSize: '0.85rem', fontWeight: 600 
       }}>
-        {status}
+        {status.replace(/_/g, " ")}
       </span>
     );
   };
@@ -128,9 +128,9 @@ const MyTickets: React.FC = () => {
             <label className="form-label" htmlFor="status"><Filter size={14} style={{ marginRight: '0.4rem' }}/>Status</label>
             <select id="status" className="form-select" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} style={{ marginBottom: 0 }}>
               <option value="">All Statuses</option>
-              <option value="New">New</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Resolved">Resolved</option>
+              <option value="NEW">New</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
             </select>
           </div>
           <div className="form-group" style={{ justifyContent: 'flex-end' }}>
