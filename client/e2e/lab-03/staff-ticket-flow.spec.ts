@@ -24,19 +24,15 @@ test.describe('IT Staff Ticket Workflow', () => {
     const currentUrl = page.url();
     if (!currentUrl.includes('/login')) {
       // It might show the ChangePasswordModal if not already changed.
-      const changePassVisible = await page.locator('text=Change Default Password').isVisible({ timeout: 2000 }).catch(() => false);
+      const changePassVisible = await page.locator('text=Change Password').isVisible({ timeout: 2000 }).catch(() => false);
       if (changePassVisible) {
-        await page.fill('input[type="password"]', 'NewStaffPass1!', { force: true });
-        // The modal has two password fields. Wait, the modal might have current password and new password
-        const passwordFields = await page.locator('input[type="password"]').all();
-        if (passwordFields.length >= 3) { // It's in the modal + the background
-           await passwordFields[1].fill('Password123!'); // current
-           await passwordFields[2].fill('NewStaffPass1!'); // new
-        } else {
-           await page.getByLabel('Current Password').fill('Password123!');
-           await page.getByLabel('New Password').fill('NewStaffPass1!');
+        const currentInput = page.locator('#currentPassword');
+        if (await currentInput.isVisible()) {
+          await currentInput.fill('Password123!');
+          await page.fill('#newPassword', 'NewStaffPass1!');
+          await page.fill('#confirmPassword', 'NewStaffPass1!');
+          await page.click('button:has-text("Change Password")');
         }
-        await page.click('button:has-text("Update Password")');
       }
     }
 
