@@ -251,6 +251,29 @@ This document contains the complete bidirectional peer review records for Lab 3 
 
 ---
 
+### 8. PR #36: release: Lab 3 - Users, Roles, IT Staff Ticketing, and Admin Screens (Sprint 3 Release)
+- **Reviewer (@pimchayasupr-hash):**
+  > **Peer Review: Sprint 3 Final Release Evaluation**
+  > 
+  > Target PR: [#36](https://github.com/supa-gif173/toktickit/pull/36) (`lab3-staging` → `main`)  
+  > Verdict: Approved (LGTM! 🎉)
+  > 
+  > **Key Implementation Highlights:**
+  > - **Authentication & Session Security:** Secure HttpOnly JWT cookie-based session handling paired with bcrypt password hashing. Strict enforcement of mandatory first-login password change flow with regex complexity rules. Admin safeguards are rock-solid: self-deactivation is explicitly blocked (400) and the system guarantees at least one active Administrator remains at all times.
+  > - **IT Staff Workflow & Access Control:** Full status transition lifecycle enforced on the backend (including uppercase standard statuses IN_PROGRESS, WAITING_ON_CLIENT, PROBLEM_APPEARS_RESOLVED, CLOSED). Clean role boundary separating public customer-facing comments from private internal staff notes. Efficient search, filtering (status, priority, category), and pagination on the IT Staff queue.
+  > - **Responsive UI & Design System (Zen Green):** Seamless responsive experience across Desktop, Tablet, and Mobile viewports without horizontal scrollbars or element clipping. 17 high-resolution screenshot artifacts properly categorized under `artifacts/lab-03/screenshots/` matching specification evidence requirements.
+  > - **Testing & Migration Integrity:** Comprehensive multi-tier test suites: 43+ Server Vitest tests, 14+ Client component tests, and 4 complete Playwright E2E suites covering authentication, first-login, staff operations, and user administration. Database migrations successfully preserve legacy Lab 2 requester data and attachment relationships.
+  > 
+  > **Conclusion:**
+  > All 7 GitHub Issues, Section 12 directory hierarchy, and Lab 3 requirements have been meticulously satisfied with excellent code hygiene and bidirectional documentation. Ready to merge into `main`!
+  > 
+  > **Verdict: APPROVED**
+
+- **Author (@supa-gif173):**
+  > Thank you so much [@pimchayasupr-hash](https://github.com/pimchayasupr-hash) for the comprehensive final release evaluation and approval! It has been an absolute pleasure collaborating throughout Sprint 3. Merging `lab3-staging` into `main` now to finalize the Lab 3 release! 🚀🎉
+
+---
+
 # Part II: Reviews I Conducted for Peers (Reviews by Supattra Kongsiripat - @supa-gif173)
 
 ---
