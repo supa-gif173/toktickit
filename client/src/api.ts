@@ -3,12 +3,14 @@ export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 // --- Types ---
 
 export interface Category {
+  createdAt?: string;
   id: string;
   name: string;
   isActive?: boolean;
 }
 
 export interface RelatedSystem {
+  createdAt?: string;
   id: string;
   name: string;
   isActive?: boolean;
@@ -20,6 +22,39 @@ export interface User {
   email: string;
   role: 'REQUESTER' | 'STAFF' | 'ADMIN';
   requiresPasswordChange: boolean;
+  isActive?: boolean;
+}
+
+export type ActionStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+
+export interface ActionTaken {
+  id: string;
+  ticketId: string;
+  performedById: string;
+  assigneeId?: string | null;
+  status: ActionStatus;
+  actionDateTime: string;
+  description: string;
+  result?: string | null;
+  followUpRequired: boolean;
+  followUpNote?: string | null;
+  attachmentNotes?: string | null;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  performedBy?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+  assignee?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    isActive?: boolean;
+  } | null;
 }
 
 export interface SystemStatus {
@@ -53,11 +88,13 @@ export interface Ticket {
   itPriority: string;
   createdAt: string;
   updatedAt: string;
-  requester?: User;
-  owner?: User;
+  requester?: { id: string; name: string; email: string; role?: string; requiresPasswordChange?: boolean } | User;
+  owner?: User | null;
   category?: Category;
   system?: RelatedSystem;
   attachments?: Attachment[];
+  version?: number;
+  actionsTaken?: ActionTaken[];
 }
 
 const fetchApi = (url: string, options: RequestInit = {}) => {
@@ -300,6 +337,81 @@ export async function createAdminUser(payload: { name: string; email: string; ro
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(errorData.message || "Failed to create user");
+  }
+  return res.json();
+}
+
+export async function fetchTicketActions(ticketId: string): Promise<ActionTaken[]> {
+  const res = await fetchApi(`${API_URL}/api/tickets/${ticketId}/actions`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to fetch actions");
+  }
+  const data = await res.json();
+  return data.actions || data;
+}
+
+export async function createTicketAction(ticketId: string, payload: {
+  description: string;
+  status?: ActionStatus;
+  assigneeId?: string | null;
+  actionDateTime?: string;
+  result?: string;
+  followUpRequired?: boolean;
+  followUpNote?: string;
+  attachmentNotes?: string;
+}): Promise<ActionTaken> {
+  const res = await fetchApi(`${API_URL}/api/tickets/${ticketId}/actions`, {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const err: any = new Error(errorData.message || "Failed to create action");
+    err.code = errorData.code;
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return data.action || data;
+}
+
+export async function updateTicketAction(ticketId: string, actionId: string, payload: {
+  description?: string;
+  status?: ActionStatus;
+  assigneeId?: string | null;
+  result?: string | null;
+  followUpRequired?: boolean;
+  followUpNote?: string | null;
+  attachmentNotes?: string | null;
+  expectedVersion?: number;
+}): Promise<ActionTaken> {
+  const res = await fetchApi(`${API_URL}/api/tickets/${ticketId}/actions/${actionId}`, {
+    method: "PATCH",
+    headers: getHeaders(),
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const err: any = new Error(errorData.message || "Failed to update action");
+    err.code = errorData.code;
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return data.action || data;
+}
+
+export async function fetchStaffAssignees(): Promise<User[]> {
+  const res = await fetchApi(`${API_URL}/api/staff/assignees`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to fetch staff assignees");
   }
   return res.json();
 }

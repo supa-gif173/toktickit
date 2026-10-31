@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchTicketDetails, uploadAttachment, removeAttachment, Ticket, API_URL } from '../api';
 import { ArrowLeft, AlertCircle, Download, Paperclip, Trash2 } from 'lucide-react';
+import ActionsTaken from '../components/ActionsTaken';
 
 const TicketDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -260,6 +261,8 @@ const TicketDetail: React.FC = () => {
 
         </div>
       </div>
+
+      <ActionsTaken ticketId={ticket.id} isStaffOrAdmin={false} />
     </div>
   );
 };

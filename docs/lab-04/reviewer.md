@@ -13,7 +13,8 @@ This document contains the complete bidirectional peer review records for Lab 4 
 
 ## Pull Requests
 1. [PR #38: docs(spec): Sprint 4 Engineering Contract and Specifications (Resolves #37)](https://github.com/supa-gif173/toktickit/pull/38) — **Approved & Merged**
-2. [PR #40: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)](https://github.com/supa-gif173/toktickit/pull/40) — **Approved (LGTM)**
+2. [PR #40: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)](https://github.com/supa-gif173/toktickit/pull/40) — **Approved & Merged**
+3. [PR #42: feat(ui): Actions Taken Ticket Detail UI, modal workflows, and component tests (Resolves #41)](https://github.com/supa-gif173/toktickit/pull/42) — **Approved (LGTM)**
 
 ---
 
@@ -113,6 +114,47 @@ This document contains the complete bidirectional peer review records for Lab 4 
   > Code quality, error formatting, and architectural design strictly satisfy all course requirements.
   > 
   > **Status: Approved (LGTM)**
+
+---
+
+### 3. PR #42: feat(ui): Actions Taken Ticket Detail UI, modal workflows, and component tests (Resolves #41)
+
+- **Reviewer (@pimchayasupr-hash - Approval):**
+  > Peer Review for PR #42: Actions Taken Ticket Detail UI & Modal Workflows
+  > 
+  > Thank you @supa-gif173 for implementing the Actions Taken UI subsystem (Issue #41) adhering to Sprint 4 engineering contract and Handout Part 6/9 requirements.
+  > 
+  > I have thoroughly inspected the diff across all 10 files and verify that all UI behaviors, access controls, and validation gates are implemented cleanly:
+  > 
+  > **Verification Summary:**
+  > - **Responsive Presentation & Design Token Compliance (Part 6 & 9):**
+  >   - Responsive layout transitions smoothly between a 9-column desktop table (.desktop-table) and stacked mobile cards (.mobile-cards) with zero horizontal overflow.
+  >   - Status badges cleanly reflect all 4 lifecycle states (PENDING, IN_PROGRESS, COMPLETED, CANCELLED).
+  >   - Clean inline SVG icons (via Lucide React) used exclusively with zero emojis in production UI.
+  >   - Terminal locking badge ([Locked]) and inactive assignee tags ([Inactive]) render accurately.
+  > - **Modal Workflows & Client Validation Gates (Part 6):**
+  >   - Enforces non-empty description (1�2,000 characters).
+  >   - Dynamically requires result when transitioning status to COMPLETED.
+  >   - Conditional rendering and validation for `followUpNote` when Follow-Up Required is checked.
+  >   - Assignee selection is populated via GET /api/staff/assignees with deactivated staff marked and disabled.
+  >   - Handles optimistic concurrency conflicts (HTTP 409) with a clear conflict recovery alert and reload prompt.
+  > - **Role-Based Access Control (Part 6 & 8):**
+  >   - IT Staff and Administrators have full access to creation and editing modals.
+  >   - Requesters are strictly confined to a read-only list with all modification controls hidden.
+  > - **Automated Component Tests:**
+  >   - client/tests/lab-04/ActionsTaken.test.tsx comprehensively verifies rendering, role-based button visibility, form validations, and terminal lock immutability (UI-03, UI-04, UI-05, UI-09).
+  >   - Test suites pass 100% (Client: 18/18, Server: 55/55).
+  > 
+  > The implementation is robust, responsive, accessible, and ready for integration.
+  > 
+  > **Status: Approved (LGTM)**
+
+- **Author (@supa-gif173 - Response):**
+  > Thank you @pimchayasupr-hash for the thorough review and approval!
+  > 
+  > I appreciate your verification of the responsive layout across both .desktop-table and .mobile-cards, the client-side validation gates (mandatory description, mandatory completion result, and conditional follow-up note), the terminal lock immutability, and the optimistic concurrency conflict handling with reload recovery.
+  > 
+  > All test suites continue to pass 100% (Client: 18/18, Server: 55/55) with 0 regressions. I will proceed with merging PR #42 into lab4-staging and continue with Issue 4 (Ticket Workflow, Status Transitions, Resolution Gate & Concurrency Control).
 
 ---
 
