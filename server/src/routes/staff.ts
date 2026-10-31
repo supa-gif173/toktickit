@@ -77,7 +77,14 @@ router.get("/tickets/:id", async (req: Request, res: Response) => {
         system: true,
         requester: { select: { id: true, name: true, email: true } },
         owner: { select: { id: true, name: true, email: true } },
-        attachments: true
+        attachments: true,
+        actionsTaken: {
+          include: {
+            performedBy: { select: { id: true, name: true, email: true, role: true } },
+            assignee: { select: { id: true, name: true, email: true, role: true } }
+          },
+          orderBy: { actionDateTime: "asc" }
+        }
       }
     });
 
@@ -179,13 +186,14 @@ router.patch("/tickets/:id/priority", async (req: Request, res: Response) => {
 // PATCH /api/staff/tickets/:id/status
 router.patch("/tickets/:id/status", async (req: Request, res: Response) => {
   const ticketId = req.params.id;
-  const { status } = req.body;
+  const { status, expectedVersion } = req.body;
 
   if (!status) {
     return res.status(400).json({ error: "Bad Request", message: "Missing status" });
   }
 
   try {
+    const prisma = getPrisma();
     const normalizedStatus = status.toUpperCase().replace(" ", "_");
     const allowedStatuses = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
     
@@ -193,9 +201,14 @@ router.patch("/tickets/:id/status", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Bad Request", message: "Invalid status value" });
     }
 
-    const existingTicket = await getPrisma().ticket.findUnique({ where: { id: ticketId } });
+    const existingTicket = await prisma.ticket.findUnique({ where: { id: ticketId } });
     if (!existingTicket) {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
+    }
+
+    // Concurrency check if expectedVersion is supplied
+    if (expectedVersion !== undefined && existingTicket.version !== Number(expectedVersion)) {
+      return res.status(409).json({ error: "Conflict", message: "Ticket has been modified by another user." });
     }
 
     const currentStatus = existingTicket.status.toUpperCase().replace(" ", "_");
@@ -215,17 +228,54 @@ router.patch("/tickets/:id/status", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Bad Request", message: "Invalid status transition" });
     }
 
-    const ticket = await getPrisma().ticket.update({
-      where: { id: ticketId },
-      data: { status: normalizedStatus }
+    const ticket = await prisma.$transaction(async (tx) => {
+      let updatedTicket;
+      if (expectedVersion !== undefined) {
+        const updateResult = await tx.ticket.updateMany({
+          where: { id: ticketId, version: Number(expectedVersion) },
+          data: {
+            status: normalizedStatus,
+            version: Number(expectedVersion) + 1
+          }
+        });
+        if (updateResult.count === 0) {
+          throw new Error("CONCURRENCY_CONFLICT");
+        }
+        updatedTicket = await tx.ticket.findUnique({ where: { id: ticketId } });
+      } else {
+        updatedTicket = await tx.ticket.update({
+          where: { id: ticketId },
+          data: {
+            status: normalizedStatus,
+            version: existingTicket.version + 1
+          }
+        });
+      }
+
+      // Append to TicketStatusHistory if status changed
+      if (currentStatus !== normalizedStatus) {
+        await tx.ticketStatusHistory.create({
+          data: {
+            ticketId,
+            fromStatus: currentStatus,
+            toStatus: normalizedStatus,
+            changedById: res.locals.user.userId
+          }
+        });
+      }
+
+      return updatedTicket;
     });
 
     res.status(200).json(ticket);
   } catch (error: any) {
+    if (error.message === "CONCURRENCY_CONFLICT") {
+      return res.status(409).json({ error: "Conflict", message: "Ticket has been modified by another user." });
+    }
     if (error.code === 'P2025') {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
     }
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error", details: error.message });
   }
 });
 
