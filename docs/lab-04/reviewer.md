@@ -13,7 +13,7 @@ This document contains the complete bidirectional peer review records for Lab 4 
 
 ## Pull Requests
 1. [PR #38: docs(spec): Sprint 4 Engineering Contract and Specifications (Resolves #37)](https://github.com/supa-gif173/toktickit/pull/38) — **Approved & Merged**
-2. [PR for Issue #39: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)](https://github.com/supa-gif173/toktickit/pull/new/feature/issue-39-actions-foundation) — **In Review**
+2. [PR #40: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)](https://github.com/supa-gif173/toktickit/pull/40) — **Approved (LGTM)**
 
 ---
 
@@ -82,6 +82,37 @@ This document contains the complete bidirectional peer review records for Lab 4 
   > Everything strictly complies with the CPE 334 Lab 4 specifications. LGTM and Approved! You may proceed with merging this PR into lab4-staging.
 
 *(PR #38 merged into `lab4-staging` on Oct 30, 2026)*
+
+---
+
+### 2. PR #40: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)
+
+- **Reviewer (@pimchayasupr-hash - Approval):**
+  > Peer Review for PR #40: Actions Taken Foundation, Migration, Seed, APIs & Tests
+  > 
+  > Thank you @supa-gif173 for implementing Issue #39 and addressing all specification requirements established in Sprint 4.
+  > 
+  > I have thoroughly inspected the diff across all 8 modified files against the official Lab 4 Handout (Parts 6, 7, and 9) and verify that all core capabilities and safety guards are implemented cleanly:
+  > 
+  > **Verification Summary:**
+  > - **Prisma Schema & Migration (Part 6):**
+  >   - Cleanly defines ActionStatus enum (PENDING, IN_PROGRESS, COMPLETED, CANCELLED).
+  >   - Links ActionTaken to User for both performedBy and assignee, with foreign key indexes and version Int @default(1) for atomic OCC.
+  >   - Defines append-only TicketStatusHistory model tracking ticketId, fromStatus, toStatus, changedById, and changedAt.
+  >   - Migration 20261031020855_add_actions_taken_and_history executes cleanly on PostgreSQL.
+  > - **Business Rules & Endpoint Validation (Parts 6 & 7):**
+  >   - POST /api/tickets/:id/actions: Enforces mandatory result on COMPLETED, rejects future actionDateTime (400), and validates active IT Staff assignees (400 INACTIVE_ASSIGNEE).
+  >   - PATCH /api/tickets/:ticketId/actions/:actionId: Enforces terminal lock on completed/cancelled actions (400 TERMINAL_ACTION_LOCKED) and executes atomic optimistic concurrency writes with expected version comparison returning 409 Conflict on race conditions.
+  >   - GET /api/tickets/:id/history: Securely exposes status audit history with requester ownership protection (403 for unauthorized requesters).
+  >   - Status transitions atomically mutate Ticket and append TicketStatusHistory within a shared prisma.$transaction.
+  > - **Testing & Seed Data Integrity:**
+  >   - server/prisma/seed.ts contains diverse, idempotent test scenarios covering all 4 action statuses, follow-up flags, and historical transitions.
+  >   - Comprehensive test suite in tests/lab-04/actions-taken.api.test.ts cleanly verifies positive paths and negative edge cases (concurrency conflicts, inactive assignees, terminal locking, and access boundaries).
+  >   - Server regression suite passes 100% (53/53 tests).
+  > 
+  > Code quality, error formatting, and architectural design strictly satisfy all course requirements.
+  > 
+  > **Status: Approved (LGTM)**
 
 ---
 
