@@ -222,6 +222,29 @@ This document contains the complete bidirectional peer review records for Lab 4 
   > 
   > **Status: Approved (LGTM)**
 
+### [PR #57: fix(ui,pdf): enforce explicit SVG dimensions, fix visual bugs, and update submission evidence](https://github.com/pimchayasupr-hash/toktickit/pull/57)
+- **Reviewer (@supa-gif173 - Approval / LGTM):**
+  > Peer Review for PR #57: Enforce Explicit SVG Dimensions, Visual Fixes & Evidence Refresh
+  > 
+  > Thank you @pimchayasupr-hash for this thorough visual hardening and documentation alignment PR. I have inspected all modified files and verified the fixes against the engineering specifications and rubric requirements:
+  > 
+  > **Verification Summary:**
+  > - **Explicit SVG Dimensions & Universal Guardrails:**
+  >   - Explicit `width` and `height` attributes added across all 52 inline SVGs (`StaffTicketDetail.tsx`, `ActionsTakenSection.tsx`, `Navbar.tsx`, `LoginForm.tsx`, dashboards, etc.).
+  >   - Added universal CSS sizing boundaries in `client/src/index.css` (`svg:not([width])`, `svg[width="..."]` with `!important` bounds) to guarantee SVG icons never balloon or blow out in layout or headless rendering.
+  > - **Automated Dimension Boundary Guardrail Test:**
+  >   - New Playwright E2E test in `e2e/lab-04/dashboards-and-overflow.spec.ts` programmatically asserts that no inline SVG exceeds 64px width or height across Login, Staff Dashboard, Requester Dashboard, and Ticket Detail.
+  > - **Telemetry & Direct Database Synchronization:**
+  >   - Cleanly re-seeded and regenerated `artifacts/lab-04/metrics-vs-db.txt` with zero divergence between dashboard API metrics and direct PostgreSQL queries.
+  >   - Re-captured all 31 full-resolution screenshots at 2x scale (`deviceScaleFactor: 2`) capturing authentic states (empty state, create action modal, HTTP 409 conflict alert banner, status history table, and validation errors).
+  > - **Documentation Alignment & Test Counts:**
+  >   - Synced test suite totals in `README.md` and `docs/lab-04/tests.md` to reflect 196 unique tests (220 total executions across Chromium, Firefox, WebKit: 144 Server, 40 Client, 36 E2E, 100% PASS).
+  >   - Re-compiled clean `LAB4_SUBMISSION.pdf`.
+  > 
+  > The visual presentation is pristine and robust against rendering anomalies.
+  > 
+  > **Status: Approved (LGTM)**
+
 ## 2. Reviews Conducted on `MiMikoChAn913/toktickit`
 
 1. **[PR #73: Lab 4 Requester and IT Staff dashboards by MiMikoChAn913](https://github.com/MiMikoChAn913/toktickit/pull/73)**
