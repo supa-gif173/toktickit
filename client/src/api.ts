@@ -477,3 +477,83 @@ export async function updateAdminUser(id: string, payload: { name?: string; emai
   }
   return res.json();
 }
+
+
+// ============================================================================
+// Sprint 4: Dashboard APIs (Issue 5)
+// ============================================================================
+
+export interface RequesterDashboardMetrics {
+  myOpenTickets: number;
+  waitingForRequester: number;
+  recentlyResolved: number;
+}
+
+export interface DashboardRecentTicket {
+  id: string;
+  ticketNumber: string;
+  summary: string;
+  status: string;
+  requestedPriority?: string;
+  itPriority: string;
+  version: number;
+  updatedAt: string;
+  owner?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface RequesterDashboardData {
+  metrics: RequesterDashboardMetrics;
+  recentTickets: DashboardRecentTicket[];
+}
+
+export interface StaffDashboardMetrics {
+  newTickets: number;
+  openTickets: number;
+  inProgressTickets: number;
+  waitingForRequester: number;
+  myAssignedTickets: number;
+  unassignedTickets: number;
+}
+
+export interface StaffDashboardData {
+  metrics: StaffDashboardMetrics;
+  ticketsByPriority: {
+    URGENT: number;
+    HIGH: number;
+    MEDIUM: number;
+    LOW: number;
+  };
+  recentQueueTickets: DashboardRecentTicket[];
+  adminStats?: {
+    totalUsers: number;
+    activeStaff: number;
+    activeRequesters: number;
+  };
+}
+
+export async function fetchRequesterDashboard(): Promise<RequesterDashboardData> {
+  const res = await fetchApi(`${API_URL}/api/dashboard/requester`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to fetch requester dashboard");
+  }
+  return res.json();
+}
+
+export async function fetchStaffDashboard(): Promise<StaffDashboardData> {
+  const res = await fetchApi(`${API_URL}/api/dashboard/staff`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const err: any = new Error(errorData.message || "Failed to fetch staff dashboard");
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
+}

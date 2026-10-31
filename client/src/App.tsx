@@ -8,6 +8,8 @@ import CreateTicket from './pages/CreateTicket';
 import TicketDetail from './pages/TicketDetail';
 import StaffTicketQueue from './pages/StaffTicketQueue';
 import StaffTicketDetail from './pages/StaffTicketDetail';
+import RequesterDashboard from './pages/RequesterDashboard';
+import StaffDashboard from './pages/StaffDashboard';
 import UserManagement from './components/admin/UserManagement';
 
 const ProtectedRoute = ({ children, requireRole }: { children: React.ReactNode, requireRole?: 'REQUESTER' | 'STAFF' | 'ADMIN' }) => {
@@ -34,6 +36,14 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const DashboardLanding: React.FC = () => {
+  const { activeUser } = useAuth();
+  if (activeUser?.role === 'STAFF' || activeUser?.role === 'ADMIN') {
+    return <StaffDashboard />;
+  }
+  return <RequesterDashboard />;
+};
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -46,7 +56,12 @@ const App: React.FC = () => {
               <Layout />
             </ProtectedRoute>
           }>
-            <Route index element={<MyTickets />} />
+            <Route index element={<DashboardLanding />} />
+            <Route path="dashboard" element={<DashboardLanding />} />
+            <Route path="requester/dashboard" element={<ProtectedRoute><RequesterDashboard /></ProtectedRoute>} />
+            <Route path="staff/dashboard" element={<StaffRoute><StaffDashboard /></StaffRoute>} />
+            <Route path="tickets" element={<MyTickets />} />
+            <Route path="my-tickets" element={<MyTickets />} />
             <Route path="tickets/new" element={
               <ProtectedRoute requireRole="REQUESTER">
                 <CreateTicket />
