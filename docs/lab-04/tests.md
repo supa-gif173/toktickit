@@ -21,19 +21,19 @@ Testing spans five distinct layers:
 | **API-03** | API | AC-03, BR-04 | Requester retrieves actions for other user's ticket | 403 Forbidden or 404 Not Found; no data leaked | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
 | **API-04** | API | AC-04, BR-03 | Action creation with `followUpRequired=true` but missing `followUpNote` | 400 Bad Request; validation error returned | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
 | **API-05** | API | FR-03, BR-03 | Update existing Action Taken in PENDING/IN_PROGRESS state | 200 OK; updated fields persisted with version increment | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
-| **API-06** | API | AC-07, BR-06 | Resolve ticket without any Actions Taken (Resolution Gate) | 400 Bad Request (`RESOLUTION_GATE_FAILED`); rejected due to missing action | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
-| **API-07** | API | AC-08, BR-05, BR-06 | Resolve ticket meeting all Resolution Gate prerequisites | 200 OK; status changes to RESOLVED and version increments | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
-| **API-08** | API | BR-05 | Illegal status transition (e.g. NEW &rarr; RESOLVED directly) | 400 Bad Request; illegal transition rejected | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
-| **API-09** | API | AC-09, BR-07 | Requester toggles "Problem Appears Resolved" | 200 OK; advisory flag updated without changing status | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
-| **API-10** | API | AC-12, BR-11 | Optimistic concurrency collision on ticket status update (`expectedVersion` mismatch) | 409 Conflict; update rejected via atomic write predicate | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
+| **API-06** | API | AC-07, BR-06 | Resolve ticket without any Actions Taken (Resolution Gate) | 400 Bad Request (`RESOLUTION_GATE_FAILED`); rejected due to missing action | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
+| **API-07** | API | AC-08, BR-05, BR-06 | Resolve ticket meeting all Resolution Gate prerequisites | 200 OK; status changes to RESOLVED and version increments | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
+| **API-08** | API | BR-05 | Illegal status transition (e.g. NEW &rarr; RESOLVED directly) | 400 Bad Request; illegal transition rejected | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
+| **API-09** | API | AC-09, BR-07 | Requester toggles "Problem Appears Resolved" | 200 OK; advisory flag updated without changing status | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
+| **API-10** | API | AC-12, BR-11 | Optimistic concurrency collision on ticket status update (`expectedVersion` mismatch) | 409 Conflict; update rejected via atomic write predicate | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
 | **API-11** | API | AC-10, BR-08 | Retrieve Requester dashboard metrics | 200 OK; returns accurate personal counts and recent tickets | `server/tests/lab-04/requester-dashboard.api.test.ts` | Planned |
 | **API-12** | API | AC-11, BR-09 | Retrieve IT Staff dashboard metrics | 200 OK; returns unassigned, assigned-to-me, status/priority breakdown | `server/tests/lab-04/staff-dashboard.api.test.ts` | Planned |
 | **API-13** | API | BR-10 | Non-Staff access to Staff dashboard endpoint | 403 Forbidden; rejected | `server/tests/lab-04/staff-dashboard.api.test.ts` | Planned |
 | **API-14** | API | AC-05, BR-02 | Assign Action Taken to inactive user or non-staff | 400 Bad Request (`INACTIVE_ASSIGNEE`); assignment rejected | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
 | **API-15** | API | AC-06, BR-03 | Action Taken lifecycle: complete without result & terminal lock | 400 Bad Request if result missing on complete; 400 Bad Request on editing COMPLETED/CANCELLED action | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
-| **API-16** | API | AC-08, BR-13 | Append-only Ticket Status History audit row created in same transaction | 200 OK; history record created with fromStatus, toStatus, changedById, timestamp | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
+| **API-16** | API | AC-08, BR-13 | Append-only Ticket Status History audit row created in same transaction | 200 OK; history record created with fromStatus, toStatus, changedById, timestamp | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
 | **API-17** | API | AC-12, BR-11 | Optimistic concurrency collision on Action Taken update (`expectedVersion` mismatch) | 409 Conflict; concurrent action edit rejected via atomic predicate | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
-| **API-18** | API | AC-07, BR-06 | Resolution Gate prerequisites: unassigned ticket owner or incomplete follow-up note | 400 Bad Request (`RESOLUTION_GATE_FAILED`); resolution blocked | `server/tests/lab-04/ticket-workflow.api.test.ts` | Planned |
+| **API-18** | API | AC-07, BR-06 | Resolution Gate prerequisites: unassigned ticket owner or incomplete follow-up note | 400 Bad Request (`RESOLUTION_GATE_FAILED`); resolution blocked | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
 
 ---
 
@@ -46,11 +46,11 @@ Testing spans five distinct layers:
 | **UI-03** | Component | FR-01, AC-01 | Actions Taken list and create modal on Ticket Detail | Renders actions table; opens modal on 'Add Action' click | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-04** | Component | AC-04, BR-03 | Actions Taken form validation | Shows inline error when Follow-Up is checked without note or result missing on complete | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-05** | Component | AC-02, BR-04 | Actions Taken view under Requester session | Actions are read-only; Add Action button is hidden | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
-| **UI-06** | Component | AC-07, AC-08 | Ticket Workflow status transition dropdown & checklist | Displays permitted transitions; displays Resolution Gate prerequisites checklist | `client/tests/lab-04/TicketWorkflow.test.tsx` | Planned |
-| **UI-07** | Component | AC-09, BR-07 | Requester Resolution indicator toggle | Renders checkbox/button; triggers API call and feedback | `client/tests/lab-04/TicketWorkflow.test.tsx` | Planned |
+| **UI-06** | Component | AC-07, AC-08 | Ticket Workflow status transition dropdown & checklist | Displays permitted transitions; displays Resolution Gate prerequisites checklist | `client/tests/lab-04/TicketWorkflow.test.tsx` | Pass |
+| **UI-07** | Component | AC-09, BR-07 | Requester Resolution indicator toggle | Renders checkbox/button; triggers API call and feedback | `client/tests/lab-04/TicketWorkflow.test.tsx` | Pass |
 | **UI-08** | Component | AC-14, Part 9 | Axe-core accessibility scan on Dashboards and Ticket Details | Zero WCAG 2.1 AA violations across tested components | `client/tests/lab-04/A11yScan.test.tsx` | Planned |
 | **UI-09** | Component | AC-06, BR-03 | Terminal lock UI on completed/cancelled actions | Action rows show locked badge; edit controls disabled | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
-| **UI-10** | Component | AC-08, BR-13 | Ticket Status History timeline rendering | Chronologically renders status audit entries with actor badges | `client/tests/lab-04/TicketHistory.test.tsx` | Planned |
+| **UI-10** | Component | AC-08, BR-13 | Ticket Status History timeline rendering | Chronologically renders status audit entries with actor badges | `client/tests/lab-04/TicketHistory.test.tsx` | Pass |
 
 ---
 
