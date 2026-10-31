@@ -77,7 +77,14 @@ router.get("/tickets/:id", async (req: Request, res: Response) => {
         system: true,
         requester: { select: { id: true, name: true, email: true } },
         owner: { select: { id: true, name: true, email: true } },
-        attachments: true
+        attachments: true,
+        actionsTaken: {
+          include: {
+            performedBy: { select: { id: true, name: true, email: true, role: true } },
+            assignee: { select: { id: true, name: true, email: true, role: true } }
+          },
+          orderBy: { actionDateTime: "asc" }
+        }
       }
     });
 
