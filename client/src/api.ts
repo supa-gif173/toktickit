@@ -95,6 +95,7 @@ export interface Ticket {
   attachments?: Attachment[];
   version?: number;
   actionsTaken?: ActionTaken[];
+  problemAppearsResolved?: boolean;
 }
 
 const fetchApi = (url: string, options: RequestInit = {}) => {
@@ -227,15 +228,63 @@ export async function updateTicketPriority(id: string, itPriority: string): Prom
   return res.json();
 }
 
-export async function updateTicketStatus(id: string, status: string): Promise<Ticket> {
+export interface StatusHistoryEntry {
+  id: string;
+  ticketId: string;
+  fromStatus: string;
+  toStatus: string;
+  changedById: string;
+  changedAt: string;
+  changedBy?: {
+    id: string;
+    name: string;
+    email: string;
+    role?: string;
+  };
+}
+
+export async function fetchTicketHistory(id: string): Promise<StatusHistoryEntry[]> {
+  const res = await fetchApi(`${API_URL}/api/tickets/${id}/history`, {
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to fetch ticket history");
+  }
+  const data = await res.json();
+  return data.history || data;
+}
+
+export async function updateTicketResolutionIndicator(id: string, problemAppearsResolved: boolean): Promise<{ problemAppearsResolved: boolean }> {
+  const res = await fetchApi(`${API_URL}/api/tickets/${id}/resolve-indicator`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ problemAppearsResolved })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to update resolution indicator");
+  }
+  return res.json();
+}
+
+export async function updateTicketStatus(id: string, status: string, expectedVersion?: number): Promise<Ticket> {
   const res = await fetchApi(`${API_URL}/api/staff/tickets/${id}/status`, {
     method: 'PATCH',
     headers: getHeaders(),
-    body: JSON.stringify({ status })
+    body: JSON.stringify({ status, expectedVersion })
   });
-  if (!res.ok) throw new Error("Failed to update ticket status");
-  return res.json();
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const err: any = new Error(errorData.message || "Failed to update ticket status");
+    err.code = errorData.code;
+    err.status = res.status;
+    throw err;
+  }
+  const data = await res.json();
+  return data.ticket || data;
 }
+
 
 export async function createTicket(payload: { summary: string; description: string; categoryId: string; systemId: string; attachments: string[] }): Promise<Ticket> {
   const res = await fetchApi(`${API_URL}/api/tickets`, {

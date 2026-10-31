@@ -3,18 +3,19 @@
 ## Overview
 This document contains the complete bidirectional peer review records for Lab 4 (Sprint 4) according to the Course Engineering Workflow guidelines.
 
-- **Author / Student:** Supattra Kongsiripat — 67070505228 — GitHub: [@supa-gif173](https://github.com/supa-gif173)
-- **Peer Reviewer 1:** PIMCHAYA SUPRATERAVANIT — 67070505223 — GitHub: [@pimchayasupr-hash](https://github.com/pimchayasupr-hash)
-- **Peer Reviewer 2:** NATSUMI TAKAGI — 67070505202 — GitHub: [@MiMikoChAn913](https://github.com/MiMikoChAn913)
+- **Author / Student:** Supattra Kongsiripat - 67070505228 - GitHub: [@supa-gif173](https://github.com/supa-gif173)
+- **Peer Reviewer 1:** PIMCHAYA SUPRATERAVANIT - 67070505223 - GitHub: [@pimchayasupr-hash](https://github.com/pimchayasupr-hash)
+- **Peer Reviewer 2:** NATSUMI TAKAGI - 67070505202 - GitHub: [@MiMikoChAn913](https://github.com/MiMikoChAn913)
 
 ---
 
 # Part I: Peer Reviews on My Pull Requests (`supa-gif173/toktickit`)
 
 ## Pull Requests
-1. [PR #38: docs(spec): Sprint 4 Engineering Contract and Specifications (Resolves #37)](https://github.com/supa-gif173/toktickit/pull/38) — **Approved & Merged**
-2. [PR #40: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)](https://github.com/supa-gif173/toktickit/pull/40) — **Approved & Merged**
-3. [PR #42: feat(ui): Actions Taken Ticket Detail UI, modal workflows, and component tests (Resolves #41)](https://github.com/supa-gif173/toktickit/pull/42) — **Approved (LGTM)**
+1. [PR #38: docs(spec): Sprint 4 Engineering Contract and Specifications (Resolves #37)](https://github.com/supa-gif173/toktickit/pull/38) - **Approved & Merged**
+2. [PR #40: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)](https://github.com/supa-gif173/toktickit/pull/40) - **Approved & Merged**
+3. [PR #42: feat(ui): Actions Taken Ticket Detail UI, modal workflows, and component tests (Resolves #41)](https://github.com/supa-gif173/toktickit/pull/42) - **Approved (LGTM)**
+4. [PR #44: feat(workflow): Ticket workflow, Resolution Gate, Status History, and Concurrency (Resolves #43)](https://github.com/supa-gif173/toktickit/pull/44) - **Approved (LGTM)**
 
 ---
 
@@ -133,7 +134,7 @@ This document contains the complete bidirectional peer review records for Lab 4 
   >   - Clean inline SVG icons (via Lucide React) used exclusively with zero emojis in production UI.
   >   - Terminal locking badge ([Locked]) and inactive assignee tags ([Inactive]) render accurately.
   > - **Modal Workflows & Client Validation Gates (Part 6):**
-  >   - Enforces non-empty description (1�2,000 characters).
+  >   - Enforces non-empty description (1-2,000 characters).
   >   - Dynamically requires result when transitioning status to COMPLETED.
   >   - Conditional rendering and validation for `followUpNote` when Follow-Up Required is checked.
   >   - Assignee selection is populated via GET /api/staff/assignees with deactivated staff marked and disabled.
@@ -158,7 +159,93 @@ This document contains the complete bidirectional peer review records for Lab 4 
 
 ---
 
-# Part II: Reviews I Conducted on Collaborator Pull Requests (`MiMikoChAn913/toktickit`)
+
+### 4. PR #44: feat(workflow): Ticket workflow, Resolution Gate, Status History, and Concurrency (Resolves #43)
+
+- **Author (@supa-gif173 - Ready for Review):**
+  > Implementation complete for Issue #43 adhering to Sprint 4 engineering contract:
+  > - **Transition Matrix & Resolution Gate:** Strict validation restricting transition from `NEW`, and enforcing prerequisite gate on transition to `RESOLVED` (assigned owner, at least one completed action with result, all follow-ups completed). Returns `400 RESOLUTION_GATE_FAILED` on violation.
+  > - **Optimistic Concurrency Control (OCC):** Ticket status update requires `expectedVersion` and performs atomic update with `version + 1` predicate, returning `409 Conflict` on race conditions.
+  > - **Append-only History:** `TicketStatusHistory` recorded atomically in same transaction.
+  > - **Requester Advisory Resolution:** `PATCH /api/tickets/:id/resolve-indicator` allows requester to toggle `problemAppearsResolved` without mutating official ticket status.
+  > - **Timeline & UI:** `TicketHistory.tsx` renders chronological audit entries with actor badges. `StaffTicketDetail.tsx` renders Resolution Gate prerequisites checklist.
+  > - **Tests:** API tests (API-06, API-07, API-08, API-09, API-10, API-16, API-18) and UI component tests (UI-06, UI-07, UI-10) pass 100%. Zero regressions on server (62/62) and client (22/22).
+
+- **Reviewer (@pimchayasupr-hash - Approval):**
+  > Reviewed all 11 changed files in PR [#44](https://github.com/supa-gif173/toktickit/pull/44) (feature/issue-43-ticket-workflow -> lab4-staging) for Issue [#43](https://github.com/supa-gif173/toktickit/issues/43):
+  > - **State Transition Matrix & Resolution Gate (server/src/routes/staff.ts):** Strictly enforces valid state transitions (blocking illegal jumps such as NEW -> RESOLVED and mutations from CANCELLED). Verified all 4 Resolution Gate conditions (RESOLUTION_GATE_FAILED HTTP 400): assigned ownerId, at least one ActionTaken, at least one COMPLETED action with a non-empty result, and all required followUpNote fields populated.
+  > - **Atomic Concurrency (OCC) & Append-Only Audit History:** Status transitions execute inside prisma.$transaction with expectedVersion checking, returning 409 Conflict on concurrent modification and atomically appending a TicketStatusHistory record (fromStatus, toStatus, changedById, changedAt).
+  > - **Requester Advisory Resolution (server/src/routes/tickets.ts & TicketDetail.tsx):** PATCH /api/tickets/:id/resolve-indicator updates problemAppearsResolved without mutating the official ticket status, with proper ownership check (403 Forbidden for non-owners).
+  > - **UI Components & Automated Test Coverage:** Clean TicketHistory.tsx timeline and StaffTicketDetail.tsx Resolution Gate prerequisite checklist using Zen Green tokens and Lucide SVG icons (zero emojis). Comprehensive API (API-06..10, API-16, API-18) and RTL component tests (UI-06, UI-07, UI-10).
+  > 
+  > (Minor note: in docs/lab-04/reviewer.md line 18, there is a small encoding character before **Pending Review** that can be cleaned up when updating the final review status.)
+  > 
+  > **LGTM - Approved!**
+
+- **Author (@supa-gif173 - Response):**
+  > Thank you @pimchayasupr-hash for the thorough review and approval!
+  > 
+  > I appreciate your detailed verification of the state transition matrix, the 4-part Resolution Gate prerequisites, atomic OCC version check inside prisma.$transaction returning 409 Conflict, append-only TicketStatusHistory, and the Requester advisory resolution indicator isolation.
+  > 
+  > I have cleaned up the encoding character in docs/lab-04/reviewer.md and updated PR #44 status to Approved (LGTM).
+  > 
+  > All test suites remain 100% green (Server: 62/62, Client: 22/22) with zero regressions. I will now merge PR #44 into `lab4-staging` and proceed to Issue 5 (Role-Tailored Dashboards).
+
+---
+
+# Part II: Reviews I Conducted on Collaborator Pull Requests
+
+## 1. Reviews Conducted on `pimchayasupr-hash/toktickit`
+
+### [PR #56: release(lab4): Lab 4 Increment - Actions Taken, Dashboards, Resolution Gate, and Concurrency](https://github.com/pimchayasupr-hash/toktickit/pull/56)
+- **Reviewer (@supa-gif173 - Approval / LGTM):**
+  > Peer Review for PR #56: Lab 4 Staged Increment Release
+  > 
+  > Thank you @pimchayasupr-hash for this comprehensive submission. I have inspected the pull request diff across all 164 modified files against Lab 4 specification requirements (Parts 6, 7, 8, and 9):
+  > 
+  > **Verification Summary:**
+  > - **Prisma Schema & Database Layer (Part 6 & 7):**
+  >   - `ActionStatus` enum cleanly implemented (`PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`).
+  >   - `ActionTaken` model contains relation to `assignee` (User), `followUpRequired`, `followUpNote`, and `version` integer for OCC.
+  >   - `TicketStatusHistory` append-only audit model correctly captures `fromStatus`, `toStatus`, `changedById`, and timestamp.
+  > - **Business Rules & Endpoint Validation (Part 6 & 7):**
+  >   - Strict status transition matrix enforced.
+  >   - Resolution Gate strictly requires assigned owner, >=1 completed action with result, and all required follow-up notes before allowing transition to `RESOLVED`.
+  >   - Atomic OCC write predicates return HTTP 409 on version conflict.
+  >   - Advisory resolution endpoint cleanly isolated from official ticket status mutation.
+  > - **UI & Responsive Presentation (Part 6, 8, & 9):**
+  >   - Responsive design with zero horizontal overflow across mobile and desktop.
+  >   - Full compliance with Zen Green tokens (#006B3C, #008751, #F0FDF4).
+  >   - Accessible UI with inline Lucide React SVG icons (zero emojis in production UI).
+  > - **Test Suite & Verification:**
+  >   - All 195 automated tests pass (Server + Client + Axe-core accessibility scans).
+  > 
+  > **Status: Approved (LGTM)**
+
+### [PR #57: fix(ui,pdf): enforce explicit SVG dimensions, fix visual bugs, and update submission evidence](https://github.com/pimchayasupr-hash/toktickit/pull/57)
+- **Reviewer (@supa-gif173 - Approval / LGTM):**
+  > Peer Review for PR #57: Enforce Explicit SVG Dimensions, Visual Fixes & Evidence Refresh
+  > 
+  > Thank you @pimchayasupr-hash for this thorough visual hardening and documentation alignment PR. I have inspected all modified files and verified the fixes against the engineering specifications and rubric requirements:
+  > 
+  > **Verification Summary:**
+  > - **Explicit SVG Dimensions & Universal Guardrails:**
+  >   - Explicit `width` and `height` attributes added across all 52 inline SVGs (`StaffTicketDetail.tsx`, `ActionsTakenSection.tsx`, `Navbar.tsx`, `LoginForm.tsx`, dashboards, etc.).
+  >   - Added universal CSS sizing boundaries in `client/src/index.css` (`svg:not([width])`, `svg[width="..."]` with `!important` bounds) to guarantee SVG icons never balloon or blow out in layout or headless rendering.
+  > - **Automated Dimension Boundary Guardrail Test:**
+  >   - New Playwright E2E test in `e2e/lab-04/dashboards-and-overflow.spec.ts` programmatically asserts that no inline SVG exceeds 64px width or height across Login, Staff Dashboard, Requester Dashboard, and Ticket Detail.
+  > - **Telemetry & Direct Database Synchronization:**
+  >   - Cleanly re-seeded and regenerated `artifacts/lab-04/metrics-vs-db.txt` with zero divergence between dashboard API metrics and direct PostgreSQL queries.
+  >   - Re-captured all 31 full-resolution screenshots at 2x scale (`deviceScaleFactor: 2`) capturing authentic states (empty state, create action modal, HTTP 409 conflict alert banner, status history table, and validation errors).
+  > - **Documentation Alignment & Test Counts:**
+  >   - Synced test suite totals in `README.md` and `docs/lab-04/tests.md` to reflect 196 unique tests (220 total executions across Chromium, Firefox, WebKit: 144 Server, 40 Client, 36 E2E, 100% PASS).
+  >   - Re-compiled clean `LAB4_SUBMISSION.pdf`.
+  > 
+  > The visual presentation is pristine and robust against rendering anomalies.
+  > 
+  > **Status: Approved (LGTM)**
+
+## 2. Reviews Conducted on `MiMikoChAn913/toktickit`
 
 1. **[PR #73: Lab 4 Requester and IT Staff dashboards by MiMikoChAn913](https://github.com/MiMikoChAn913/toktickit/pull/73)**
    - Status: Reviewed with feedback on card metrics calculation, responsive overflow boundaries, and drill-down routing params.

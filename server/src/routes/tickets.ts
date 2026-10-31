@@ -591,4 +591,41 @@ router.get("/:id/history", async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /api/tickets/:id/resolve-indicator
+router.patch("/:id/resolve-indicator", async (req: Request, res: Response) => {
+  const userId = res.locals.user.userId;
+  const userRole = res.locals.user.role;
+  const ticketId = req.params.id;
+  const { problemAppearsResolved } = req.body;
+
+  try {
+    const prisma = getPrisma();
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId }
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
+    }
+
+    if (userRole === "REQUESTER" && ticket.requesterId !== userId) {
+      return res.status(403).json({ error: "Forbidden", message: "You do not own this ticket" });
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        problemAppearsResolved: Boolean(problemAppearsResolved)
+      }
+    });
+
+    res.status(200).json({
+      message: "Problem resolution indicator updated",
+      problemAppearsResolved: updated.problemAppearsResolved
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error", details: error.message });
+  }
+});
+
 export default router;

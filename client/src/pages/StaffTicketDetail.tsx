@@ -4,6 +4,7 @@ import { fetchStaffTicketDetails, claimTicket, assignTicket, updateTicketPriorit
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeft, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
 import ActionsTaken from '../components/ActionsTaken';
+import TicketHistory from '../components/TicketHistory';
 
 const StaffTicketDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -83,13 +84,19 @@ const StaffTicketDetail: React.FC = () => {
     setSuccessMsg('');
     setError('');
     try {
-      await updateTicketStatus(ticket.id, newStatus);
+      const updated = ticket.version !== undefined
+        ? await updateTicketStatus(ticket.id, newStatus, ticket.version)
+        : await updateTicketStatus(ticket.id, newStatus);
       setStatus(newStatus);
-      setTicket({ ...ticket, status: newStatus });
+      setTicket(prev => prev ? { ...prev, status: newStatus, version: updated.version || (prev.version ? prev.version + 1 : 2) } : null);
       setSuccessMsg('Status updated successfully!');
+      loadTicket();
     } catch (err: any) {
-      setError(err.message || 'Failed to update status.');
-      // Revert status dropdown if failed
+      if (err.status === 409 || err.message?.toLowerCase().includes('conflict') || err.message?.toLowerCase().includes('another user')) {
+        setError('Ticket has been modified by another user. Please reload the latest data.');
+      } else {
+        setError(err.message || 'Failed to update status.');
+      }
       setStatus(ticket.status);
     } finally {
       setActionLoading(false);
@@ -267,13 +274,13 @@ const StaffTicketDetail: React.FC = () => {
                 {(() => {
                   const currentStatus = ticket.status.toUpperCase().replace(" ", "_");
                   const transitionMatrix: Record<string, string[]> = {
-                    NEW: ["OPEN", "IN_PROGRESS", "CANCELLED", "RESOLVED", "CLOSED"],
-                    OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED"],
-                    IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED", "OPEN"],
-                    WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED", "CLOSED", "OPEN"],
+                    NEW: ["OPEN", "IN_PROGRESS", "CANCELLED"],
+                    OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+                    IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "OPEN"],
+                    WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
                     RESOLVED: ["CLOSED", "REOPENED"],
                     CLOSED: ["REOPENED"],
-                    REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED"],
+                    REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
                     CANCELLED: []
                   };
                   
@@ -308,12 +315,43 @@ const StaffTicketDetail: React.FC = () => {
               <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.2rem' }}>Requested Priority</div>
               <div style={{ fontWeight: 500 }}>{ticket.requestedPriority}</div>
             </div>
+
+            {/* Resolution Gate Checklist */}
+            <div style={{ marginTop: '1.2rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }} data-testid="resolution-gate-checklist">
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+                Resolution Gate Prerequisites
+              </div>
+              {(() => {
+                const isOwnerAssigned = Boolean(ticket.ownerId);
+                const actionsList = ticket.actionsTaken || [];
+                const hasCompletedAction = actionsList.some(a => a.status === 'COMPLETED' && a.result && a.result.trim().length > 0);
+                const allFollowUpsSatisfied = !actionsList.some(a => a.followUpRequired && (!a.followUpNote || a.followUpNote.trim().length === 0));
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: isOwnerAssigned ? 'var(--success)' : 'var(--error)' }} data-testid="gate-owner-check">
+                      {isOwnerAssigned ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                      <span>Owner Assigned</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: hasCompletedAction ? 'var(--success)' : 'var(--error)' }} data-testid="gate-action-check">
+                      {hasCompletedAction ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                      <span>Completed Action with Result</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: allFollowUpsSatisfied ? 'var(--success)' : 'var(--error)' }} data-testid="gate-followup-check">
+                      {allFollowUpsSatisfied ? <CheckCircle size={14} /> : <AlertCircle size={14} />}
+                      <span>Follow-up Notes Satisfied</span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
-          
+
+          <TicketHistory ticketId={ticket.id} />
         </div>
       </div>
 
-      <ActionsTaken ticketId={ticket.id} isStaffOrAdmin={true} />
+      <ActionsTaken ticketId={ticket.id} isStaffOrAdmin={true} onActionsUpdated={(updatedActions) => setTicket(prev => prev ? { ...prev, actionsTaken: updatedActions } : null)} />
     </div>
   );
 };

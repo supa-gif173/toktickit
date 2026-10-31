@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { fetchTicketDetails, uploadAttachment, removeAttachment, Ticket, API_URL } from '../api';
 import { ArrowLeft, AlertCircle, Download, Paperclip, Trash2 } from 'lucide-react';
 import ActionsTaken from '../components/ActionsTaken';
+import TicketHistory from '../components/TicketHistory';
+import { updateTicketResolutionIndicator } from '../api';
 
 const TicketDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,7 +13,26 @@ const TicketDetail: React.FC = () => {
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [advisoryLoading, setAdvisoryLoading] = useState(false);
+  const [advisoryMsg, setAdvisoryMsg] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleToggleResolved = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!ticket) return;
+    const val = e.target.checked;
+    setAdvisoryLoading(true);
+    setAdvisoryMsg('');
+    try {
+      await updateTicketResolutionIndicator(ticket.id, val);
+      setTicket({ ...ticket, problemAppearsResolved: val });
+      setAdvisoryMsg('Problem resolution indicator updated');
+      setTimeout(() => setAdvisoryMsg(''), 4000);
+    } catch (err: any) {
+      setError(err.message || 'Failed to update resolution indicator.');
+    } finally {
+      setAdvisoryLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -259,10 +280,40 @@ const TicketDetail: React.FC = () => {
             )}
           </div>
 
+          {/* Requester Advisory Resolution Card */}
+          <div style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', marginTop: '1.5rem' }} data-testid="requester-resolution-card">
+            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
+              Did this resolve your problem?
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+              Informing IT Staff that your issue is resolved. Staff will verify actions and formally close the ticket.
+            </p>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                data-testid="requester-resolve-toggle"
+                checked={Boolean(ticket.problemAppearsResolved)}
+                onChange={handleToggleResolved}
+                disabled={advisoryLoading}
+                style={{ width: '1.1rem', height: '1.1rem', cursor: 'pointer' }}
+              />
+              <span>Problem Appears Resolved</span>
+            </label>
+            {advisoryMsg && (
+              <div style={{ color: 'var(--success)', fontSize: '0.85rem', marginTop: '0.5rem', fontWeight: 500 }} data-testid="advisory-success-msg">
+                {advisoryMsg}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
 
       <ActionsTaken ticketId={ticket.id} isStaffOrAdmin={false} />
+
+      <div style={{ marginTop: '1.5rem' }}>
+        <TicketHistory ticketId={ticket.id} />
+      </div>
     </div>
   );
 };
