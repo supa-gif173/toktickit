@@ -5,6 +5,30 @@ import { requireStaffOrAdmin } from "../middleware/auth.js";
 const router = Router();
 router.use(requireStaffOrAdmin);
 
+// GET /api/staff/assignees
+router.get("/assignees", async (_req: Request, res: Response) => {
+  try {
+    const prisma = getPrisma();
+    const assignees = await prisma.user.findMany({
+      where: {
+        role: { in: ["STAFF", "ADMIN"] }
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true
+      },
+      orderBy: { name: "asc" }
+    });
+
+    res.status(200).json(assignees);
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // GET /api/staff/tickets
 router.get("/tickets", async (req: Request, res: Response) => {
   const { page = 1, limit = 10, search, status, priority, sortBy = "createdAt", sortOrder = "desc" } = req.query;

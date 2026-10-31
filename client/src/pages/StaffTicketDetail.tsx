@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { fetchStaffTicketDetails, claimTicket, assignTicket, updateTicketPriority, updateTicketStatus, Ticket } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { ArrowLeft, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
+import ActionsTaken from '../components/ActionsTaken';
 
 const StaffTicketDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -311,6 +312,8 @@ const StaffTicketDetail: React.FC = () => {
           
         </div>
       </div>
+
+      <ActionsTaken ticketId={ticket.id} isStaffOrAdmin={true} />
     </div>
   );
 };

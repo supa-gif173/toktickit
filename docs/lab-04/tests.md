@@ -43,13 +43,13 @@ Testing spans five distinct layers:
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **UI-01** | Component | FR-07, AC-10 | Requester Dashboard renders metrics and recent tickets | Cards render accurate values; quick-actions exist | `client/tests/lab-04/RequesterDashboard.test.tsx` | Planned |
 | **UI-02** | Component | FR-08, AC-11 | IT Staff Dashboard renders operational metrics | Cards for New, Open, In Progress, etc. render; drill-down links valid | `client/tests/lab-04/StaffDashboard.test.tsx` | Planned |
-| **UI-03** | Component | FR-01, AC-01 | Actions Taken list and create modal on Ticket Detail | Renders actions table; opens modal on 'Add Action' click | `client/tests/lab-04/ActionsTaken.test.tsx` | Planned |
-| **UI-04** | Component | AC-04, BR-03 | Actions Taken form validation | Shows inline error when Follow-Up is checked without note or result missing on complete | `client/tests/lab-04/ActionsTaken.test.tsx` | Planned |
-| **UI-05** | Component | AC-02, BR-04 | Actions Taken view under Requester session | Actions are read-only; Add Action button is hidden | `client/tests/lab-04/ActionsTaken.test.tsx` | Planned |
+| **UI-03** | Component | FR-01, AC-01 | Actions Taken list and create modal on Ticket Detail | Renders actions table; opens modal on 'Add Action' click | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
+| **UI-04** | Component | AC-04, BR-03 | Actions Taken form validation | Shows inline error when Follow-Up is checked without note or result missing on complete | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
+| **UI-05** | Component | AC-02, BR-04 | Actions Taken view under Requester session | Actions are read-only; Add Action button is hidden | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-06** | Component | AC-07, AC-08 | Ticket Workflow status transition dropdown & checklist | Displays permitted transitions; displays Resolution Gate prerequisites checklist | `client/tests/lab-04/TicketWorkflow.test.tsx` | Planned |
 | **UI-07** | Component | AC-09, BR-07 | Requester Resolution indicator toggle | Renders checkbox/button; triggers API call and feedback | `client/tests/lab-04/TicketWorkflow.test.tsx` | Planned |
 | **UI-08** | Component | AC-14, Part 9 | Axe-core accessibility scan on Dashboards and Ticket Details | Zero WCAG 2.1 AA violations across tested components | `client/tests/lab-04/A11yScan.test.tsx` | Planned |
-| **UI-09** | Component | AC-06, BR-03 | Terminal lock UI on completed/cancelled actions | Action rows show locked badge; edit controls disabled | `client/tests/lab-04/ActionsTaken.test.tsx` | Planned |
+| **UI-09** | Component | AC-06, BR-03 | Terminal lock UI on completed/cancelled actions | Action rows show locked badge; edit controls disabled | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-10** | Component | AC-08, BR-13 | Ticket Status History timeline rendering | Chronologically renders status audit entries with actor badges | `client/tests/lab-04/TicketHistory.test.tsx` | Planned |
 
 ---

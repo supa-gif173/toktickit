@@ -13,7 +13,8 @@ This document contains the complete bidirectional peer review records for Lab 4 
 
 ## Pull Requests
 1. [PR #38: docs(spec): Sprint 4 Engineering Contract and Specifications (Resolves #37)](https://github.com/supa-gif173/toktickit/pull/38) — **Approved & Merged**
-2. [PR #40: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)](https://github.com/supa-gif173/toktickit/pull/40) — **Approved (LGTM)**
+2. [PR #40: feat(actions): Actions Taken foundation, Prisma migration, seed, APIs, and tests (Resolves #39)](https://github.com/supa-gif173/toktickit/pull/40) — **Approved & Merged**
+3. [PR #42 (Pending): feat(ui): Actions Taken Ticket Detail UI, modal workflows, and component tests (Resolves #41)](https://github.com/supa-gif173/toktickit/pull/42) — **Pending Review**
 
 ---
 
@@ -113,6 +114,18 @@ This document contains the complete bidirectional peer review records for Lab 4 
   > Code quality, error formatting, and architectural design strictly satisfy all course requirements.
   > 
   > **Status: Approved (LGTM)**
+
+---
+
+### 3. PR #42 (Pending): feat(ui): Actions Taken Ticket Detail UI, modal workflows, and component tests (Resolves #41)
+
+- **Implementation Details:**
+  - Implemented `client/src/components/ActionsTaken.tsx` with responsive layout (`desktop-table` and `mobile-cards`).
+  - Added full create/edit modal workflows with client-side validation (mandatory description, mandatory result on completed, conditional follow-up note, inactive assignee protection).
+  - Integrated into `StaffTicketDetail.tsx` (full operational controls for IT Staff/Admin) and `TicketDetail.tsx` (strictly read-only for Requesters).
+  - Terminal lock badge `[Locked]` for `COMPLETED` and `CANCELLED` actions.
+  - Concurrency conflict recovery with HTTP 409 detection and reload action prompt.
+  - Added automated UI component tests in `client/tests/lab-04/ActionsTaken.test.tsx` verifying UI-03, UI-04, UI-05, and UI-09. All 18 client tests and 55 server tests pass.
 
 ---
 
