@@ -145,6 +145,20 @@ describe("Actions Taken & Ticket History API (Sprint 4 - Issue 2)", () => {
     expect(res.body.error).toBe("Bad Request");
   });
 
+  it("Rejects Action Taken creation with future date (BR-03)", async () => {
+    const futureDate = new Date(Date.now() + 86400000 * 5).toISOString();
+    const res = await request(app)
+      .post(`/api/tickets/${testTicket.id}/actions`)
+      .set("Cookie", staffToken)
+      .send({
+        description: "Action planned in future",
+        actionDateTime: futureDate
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/future/i);
+  });
+
   it("API-14: Assign Action Taken to inactive user or non-staff -> 400 Bad Request (INACTIVE_ASSIGNEE)", async () => {
     // 1. Attempt assigning to inactive staff
     const resInactive = await request(app)
@@ -307,5 +321,28 @@ describe("Actions Taken & Ticket History API (Sprint 4 - Issue 2)", () => {
       .get(`/api/tickets/${testTicket.id}/history`)
       .set("Cookie", req2Token);
     expect(resForbidden.status).toBe(403);
+  });
+
+  it("API-16: Updating ticket status appends to TicketStatusHistory atomically", async () => {
+    const res = await request(app)
+      .patch(`/api/staff/tickets/${testTicket.id}/status`)
+      .set("Cookie", staffToken)
+      .send({
+        status: "IN_PROGRESS"
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe("IN_PROGRESS");
+
+    // Verify history entry was appended
+    const historyRes = await request(app)
+      .get(`/api/tickets/${testTicket.id}/history`)
+      .set("Cookie", staffToken);
+
+    expect(historyRes.status).toBe(200);
+    const inProgressEntry = historyRes.body.history.find((h: any) => h.toStatus === "IN_PROGRESS");
+    expect(inProgressEntry).toBeDefined();
+    expect(inProgressEntry.fromStatus).toBe("OPEN");
+    expect(inProgressEntry.changedById).toBe(staffUser.id);
   });
 });

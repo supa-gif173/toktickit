@@ -347,6 +347,17 @@ router.post("/:id/actions", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Bad Request", message: "Action description exceeds limit of 2000 characters" });
   }
 
+  // Validate actionDateTime: cannot be invalid or in the future (BR-03)
+  if (actionDateTime) {
+    const dt = new Date(actionDateTime);
+    if (isNaN(dt.getTime())) {
+      return res.status(400).json({ error: "Bad Request", message: "Invalid action date/time" });
+    }
+    if (dt.getTime() > Date.now() + 60000) {
+      return res.status(400).json({ error: "Bad Request", message: "Action date/time cannot be in the future" });
+    }
+  }
+
   const validStatuses = ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"];
   const actionStatus = status ? status.toUpperCase() : "PENDING";
   if (!validStatuses.includes(actionStatus)) {
@@ -437,7 +448,7 @@ const handleUpdateAction = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Not Found", message: "Action Taken or Ticket not found" });
     }
 
-    // Terminal Lock Check
+    // Terminal Lock Check (BR-03)
     if (existingAction.status === "COMPLETED" || existingAction.status === "CANCELLED") {
       return res.status(400).json({
         code: "TERMINAL_ACTION_LOCKED",
@@ -446,7 +457,7 @@ const handleUpdateAction = async (req: Request, res: Response) => {
       });
     }
 
-    // Assignee Inactive Check
+    // Assignee Inactive Check (BR-02)
     if (assigneeId !== undefined && assigneeId !== null && assigneeId !== "") {
       const assigneeUser = await prisma.user.findUnique({ where: { id: assigneeId } });
       if (!assigneeUser || !assigneeUser.isActive || (assigneeUser.role !== "STAFF" && assigneeUser.role !== "ADMIN")) {
@@ -464,7 +475,7 @@ const handleUpdateAction = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Bad Request", message: "Invalid action status value" });
     }
 
-    // Completion Result Check
+    // Completion Result Check (BR-03)
     if (nextStatus === "COMPLETED") {
       const finalResult = result !== undefined ? result : existingAction.result;
       if (!finalResult || typeof finalResult !== "string" || finalResult.trim().length === 0) {
@@ -472,7 +483,7 @@ const handleUpdateAction = async (req: Request, res: Response) => {
       }
     }
 
-    // Follow-up Note Check
+    // Follow-up Note Check (BR-03)
     const finalFollowUpRequired = followUpRequired !== undefined ? Boolean(followUpRequired) : existingAction.followUpRequired;
     const finalFollowUpNote = followUpNote !== undefined ? followUpNote : existingAction.followUpNote;
     if (finalFollowUpRequired && (!finalFollowUpNote || typeof finalFollowUpNote !== "string" || finalFollowUpNote.trim().length === 0)) {
@@ -484,12 +495,20 @@ const handleUpdateAction = async (req: Request, res: Response) => {
     if (result !== undefined) updateData.result = result ? result.trim() : null;
     if (assigneeId !== undefined) updateData.assigneeId = assigneeId || null;
     if (status !== undefined) updateData.status = nextStatus as any;
-    if (followUpRequired !== undefined) updateData.followUpRequired = Boolean(followUpRequired);
-    if (followUpNote !== undefined) updateData.followUpNote = Boolean(finalFollowUpRequired) ? followUpNote?.trim() : null;
+    
+    if (followUpRequired !== undefined) {
+      updateData.followUpRequired = Boolean(followUpRequired);
+      if (!followUpRequired) {
+        updateData.followUpNote = null;
+      }
+    }
+    if (followUpNote !== undefined && Boolean(finalFollowUpRequired)) {
+      updateData.followUpNote = followUpNote ? followUpNote.trim() : null;
+    }
     if (attachmentNotes !== undefined) updateData.attachmentNotes = attachmentNotes ? attachmentNotes.trim() : null;
 
     if (expectedVersion !== undefined) {
-      // Atomic Concurrency Predicate
+      // Atomic Concurrency Predicate (BR-11)
       const updateResult = await prisma.actionTaken.updateMany({
         where: {
           id: actionId,
