@@ -48,7 +48,7 @@ Testing spans five distinct layers:
 | **UI-05** | Component | AC-02, BR-04 | Actions Taken view under Requester session | Actions are read-only; Add Action button is hidden | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-06** | Component | AC-07, AC-08 | Ticket Workflow status transition dropdown & checklist | Displays permitted transitions; displays Resolution Gate prerequisites checklist | `client/tests/lab-04/TicketWorkflow.test.tsx` | Pass |
 | **UI-07** | Component | AC-09, BR-07 | Requester Resolution indicator toggle | Renders checkbox/button; triggers API call and feedback | `client/tests/lab-04/TicketWorkflow.test.tsx` | Pass |
-| **UI-08** | Component | AC-14, Part 9 | Axe-core accessibility scan on Dashboards and Ticket Details | Zero WCAG 2.1 AA violations across tested components | `client/tests/lab-04/A11yScan.test.tsx` | Planned |
+| **UI-08** | Component | AC-14, Part 9 | Axe-core accessibility scan on Dashboards and Ticket Details | Zero WCAG 2.1 AA violations across tested components | `client/tests/lab-04/A11yScan.test.tsx` | Pass |
 | **UI-09** | Component | AC-06, BR-03 | Terminal lock UI on completed/cancelled actions | Action rows show locked badge; edit controls disabled | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-10** | Component | AC-08, BR-13 | Ticket Status History timeline rendering | Chronologically renders status audit entries with actor badges | `client/tests/lab-04/TicketHistory.test.tsx` | Pass |
 
@@ -58,9 +58,9 @@ Testing spans five distinct layers:
 
 | Test ID | Layer | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **E2E-01** | E2E | FR-01, FR-03, AC-01 | Complete Actions Taken workflow | IT Staff logs in, opens ticket, adds action, edits action, verifies table | `e2e/lab-04/actions-taken-flow.spec.ts` | Planned |
-| **E2E-02** | E2E | FR-05, AC-05, AC-06 | Resolution Gate and status lifecycle | Attempt resolve without actions (blocked) &rarr; add action &rarr; resolve ticket (succeeds) | `e2e/lab-04/ticket-resolution.spec.ts` | Planned |
-| **E2E-03** | E2E | FR-07, FR-08, AC-08 | Dashboard navigation and drill-downs | Login as Requester/Staff, view dashboard, click metric card, verify filtered queue | `e2e/lab-04/dashboards.spec.ts` | Planned |
+| **E2E-01** | E2E | FR-01, FR-03, AC-01 | Complete Actions Taken workflow | IT Staff logs in, opens ticket, adds action, edits action, verifies table | `e2e/lab-04/actions-taken-flow.spec.ts` | Pass |
+| **E2E-02** | E2E | FR-05, AC-05, AC-06 | Resolution Gate and status lifecycle | Attempt resolve without actions (blocked) &rarr; add action &rarr; resolve ticket (succeeds) | `e2e/lab-04/ticket-resolution.spec.ts` | Pass |
+| **E2E-03** | E2E | FR-07, FR-08, AC-08 | Dashboard navigation and drill-downs | Login as Requester/Staff, view dashboard, click metric card, verify filtered queue | `e2e/lab-04/dashboards.spec.ts` | Pass |
 
 ---
 
