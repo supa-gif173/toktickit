@@ -26,9 +26,9 @@ Testing spans five distinct layers:
 | **API-08** | API | BR-05 | Illegal status transition (e.g. NEW &rarr; RESOLVED directly) | 400 Bad Request; illegal transition rejected | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
 | **API-09** | API | AC-09, BR-07 | Requester toggles "Problem Appears Resolved" | 200 OK; advisory flag updated without changing status | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
 | **API-10** | API | AC-12, BR-11 | Optimistic concurrency collision on ticket status update (`expectedVersion` mismatch) | 409 Conflict; update rejected via atomic write predicate | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
-| **API-11** | API | AC-10, BR-08 | Retrieve Requester dashboard metrics | 200 OK; returns accurate personal counts and recent tickets | `server/tests/lab-04/requester-dashboard.api.test.ts` | Planned |
-| **API-12** | API | AC-11, BR-09 | Retrieve IT Staff dashboard metrics | 200 OK; returns unassigned, assigned-to-me, status/priority breakdown | `server/tests/lab-04/staff-dashboard.api.test.ts` | Planned |
-| **API-13** | API | BR-10 | Non-Staff access to Staff dashboard endpoint | 403 Forbidden; rejected | `server/tests/lab-04/staff-dashboard.api.test.ts` | Planned |
+| **API-11** | API | AC-10, BR-08 | Retrieve Requester dashboard metrics | 200 OK; returns accurate personal counts and recent tickets | `server/tests/lab-04/requester-dashboard.api.test.ts` | Pass |
+| **API-12** | API | AC-11, BR-09 | Retrieve IT Staff dashboard metrics | 200 OK; returns unassigned, assigned-to-me, status/priority breakdown | `server/tests/lab-04/staff-dashboard.api.test.ts` | Pass |
+| **API-13** | API | BR-10 | Non-Staff access to Staff dashboard endpoint | 403 Forbidden; rejected | `server/tests/lab-04/staff-dashboard.api.test.ts` | Pass |
 | **API-14** | API | AC-05, BR-02 | Assign Action Taken to inactive user or non-staff | 400 Bad Request (`INACTIVE_ASSIGNEE`); assignment rejected | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
 | **API-15** | API | AC-06, BR-03 | Action Taken lifecycle: complete without result & terminal lock | 400 Bad Request if result missing on complete; 400 Bad Request on editing COMPLETED/CANCELLED action | `server/tests/lab-04/actions-taken.api.test.ts` | Pass |
 | **API-16** | API | AC-08, BR-13 | Append-only Ticket Status History audit row created in same transaction | 200 OK; history record created with fromStatus, toStatus, changedById, timestamp | `server/tests/lab-04/ticket-workflow.api.test.ts` | Pass |
@@ -41,8 +41,8 @@ Testing spans five distinct layers:
 
 | Test ID | Layer | Requirement / AC | What It Tests | Expected Result | Automated Test File | Final Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **UI-01** | Component | FR-07, AC-10 | Requester Dashboard renders metrics and recent tickets | Cards render accurate values; quick-actions exist | `client/tests/lab-04/RequesterDashboard.test.tsx` | Planned |
-| **UI-02** | Component | FR-08, AC-11 | IT Staff Dashboard renders operational metrics | Cards for New, Open, In Progress, etc. render; drill-down links valid | `client/tests/lab-04/StaffDashboard.test.tsx` | Planned |
+| **UI-01** | Component | FR-07, AC-10 | Requester Dashboard renders metrics and recent tickets | Cards render accurate values; quick-actions exist | `client/tests/lab-04/RequesterDashboard.test.tsx` | Pass |
+| **UI-02** | Component | FR-08, AC-11 | IT Staff Dashboard renders operational metrics | Cards for New, Open, In Progress, etc. render; drill-down links valid | `client/tests/lab-04/StaffDashboard.test.tsx` | Pass |
 | **UI-03** | Component | FR-01, AC-01 | Actions Taken list and create modal on Ticket Detail | Renders actions table; opens modal on 'Add Action' click | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-04** | Component | AC-04, BR-03 | Actions Taken form validation | Shows inline error when Follow-Up is checked without note or result missing on complete | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |
 | **UI-05** | Component | AC-02, BR-04 | Actions Taken view under Requester session | Actions are read-only; Add Action button is hidden | `client/tests/lab-04/ActionsTaken.test.tsx` | Pass |

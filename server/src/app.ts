@@ -8,6 +8,7 @@ import attachmentsRouter from "./routes/attachments.js";
 import authRouter from "./routes/auth.js";
 import staffRouter from "./routes/staff.js";
 import adminRouter from "./routes/admin.js";
+import dashboardRouter from "./routes/dashboard.js";
 import cookieParser from "cookie-parser";
 import { getPrisma } from "./prisma.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
@@ -41,6 +42,7 @@ app.use("/api/requesters", requestersRouter);
 app.use("/api/systems", systemsRouter);
 app.use("/api/categories", categoriesRouter);
 app.use("/api/tickets", ticketsRouter);
+app.use("/api/dashboard", dashboardRouter);
 app.use("/api/attachments", attachmentsRouter);
 // ---------------------------------------------------------------------------
 
