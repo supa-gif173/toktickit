@@ -1,0 +1,30 @@
+
+> toktickit-client@1.0.0 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/Lenovo/toktickit/client[39m
+
+ [32m✓[39m tests/lab-03/ChangePassword.test.tsx [2m([22m[2m1 test[22m[2m)[22m[90m 200[2mms[22m[39m
+ [32m✓[39m tests/lab-03/Login.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[90m 268[2mms[22m[39m
+ [32m✓[39m tests/lab-04/TicketHistory.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[90m 258[2mms[22m[39m
+ [32m✓[39m tests/lab-04/StaffDashboard.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[90m 277[2mms[22m[39m
+ [32m✓[39m tests/lab-03/UserManagement.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 361[2mms[22m[39m
+ [32m✓[39m tests/lab-04/RequesterDashboard.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 390[2mms[22m[39m
+ [32m✓[39m tests/lab-03/StaffTicketQueue.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 422[2mms[22m[39m
+ [32m✓[39m tests/lab-04/TicketWorkflow.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 444[2mms[22m[39m
+   [33m[2m✓[22m[39m Ticket Workflow & Resolution Gate Component Tests (Sprint 4)[2m > [22mUI-06: displays permitted status transitions and Resolution Gate checklist prerequisites [33m339[2mms[22m[39m
+ [32m✓[39m tests/lab-03/StaffTicketDetail.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 773[2mms[22m[39m
+ [32m✓[39m tests/lab-04/ActionsTaken.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 897[2mms[22m[39m
+   [33m[2m✓[22m[39m ActionsTaken Component (Lab 4 Sprint 4)[2m > [22mUI-03: renders Actions Taken table, status badges, and opens create modal on "+ Add Action" click [33m438[2mms[22m[39m
+   [33m[2m✓[22m[39m ActionsTaken Component (Lab 4 Sprint 4)[2m > [22mUI-04: enforces validation: requires description, result on COMPLETED, and follow-up note when checked [33m363[2mms[22m[39m
+ [32m✓[39m tests/lab-04/A11yScan.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 939[2mms[22m[39m
+   [33m[2m✓[22m[39m Automated Axe-Core Accessibility Scan (UI-08, Part 9, AC-14)[2m > [22mUI-08: Requester Dashboard passes WCAG 2.1 AA accessibility checks with 0 violations [33m523[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/lab-01/App.test.tsx [2m([22m[2m3 tests[22m[2m | [22m[33m3 skipped[39m[2m)[22m
+ [32m✓[39m tests/lab-02/App.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[90m 96[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m12 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (13)[39m
+[2m      Tests [22m [1m[32m29 passed[39m[22m[2m | [22m[33m3 skipped[39m[90m (32)[39m
+[2m   Start at [22m 13:14:15
+[2m   Duration [22m 10.62s[2m (transform 2.20s, setup 10.40s, collect 15.45s, tests 5.33s, environment 53.12s, prepare 5.08s)[22m
+

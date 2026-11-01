@@ -5,6 +5,30 @@ import { requireStaffOrAdmin } from "../middleware/auth.js";
 const router = Router();
 router.use(requireStaffOrAdmin);
 
+// GET /api/staff/assignees
+router.get("/assignees", async (_req: Request, res: Response) => {
+  try {
+    const prisma = getPrisma();
+    const assignees = await prisma.user.findMany({
+      where: {
+        role: { in: ["STAFF", "ADMIN"] }
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true
+      },
+      orderBy: { name: "asc" }
+    });
+
+    res.status(200).json(assignees);
+  } catch (error: any) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // GET /api/staff/tickets
 router.get("/tickets", async (req: Request, res: Response) => {
   const { page = 1, limit = 10, search, status, priority, sortBy = "createdAt", sortOrder = "desc" } = req.query;
@@ -77,7 +101,14 @@ router.get("/tickets/:id", async (req: Request, res: Response) => {
         system: true,
         requester: { select: { id: true, name: true, email: true } },
         owner: { select: { id: true, name: true, email: true } },
-        attachments: true
+        attachments: true,
+        actionsTaken: {
+          include: {
+            performedBy: { select: { id: true, name: true, email: true, role: true } },
+            assignee: { select: { id: true, name: true, email: true, role: true } }
+          },
+          orderBy: { actionDateTime: "asc" }
+        }
       }
     });
 
@@ -85,7 +116,7 @@ router.get("/tickets/:id", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
     }
 
-    res.status(200).json(ticket);
+    res.status(200).json({ ...ticket, ticket, message: "Ticket status updated successfully" });
   } catch (error: any) {
     res.status(500).json({ error: "Internal Server Error" });
   }
@@ -102,7 +133,7 @@ router.patch("/tickets/:id/claim", async (req: Request, res: Response) => {
       data: { ownerId: userId }
     });
 
-    res.status(200).json(ticket);
+    res.status(200).json({ ...ticket, ticket, message: "Ticket status updated successfully" });
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
@@ -135,7 +166,7 @@ router.patch("/tickets/:id/assign", async (req: Request, res: Response) => {
       data: { ownerId: ownerId || null }
     });
 
-    res.status(200).json(ticket);
+    res.status(200).json({ ...ticket, ticket, message: "Ticket status updated successfully" });
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
@@ -167,7 +198,7 @@ router.patch("/tickets/:id/priority", async (req: Request, res: Response) => {
       data: { itPriority: normalizedPriority }
     });
 
-    res.status(200).json(ticket);
+    res.status(200).json({ ...ticket, ticket, message: "Ticket status updated successfully" });
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
@@ -179,13 +210,14 @@ router.patch("/tickets/:id/priority", async (req: Request, res: Response) => {
 // PATCH /api/staff/tickets/:id/status
 router.patch("/tickets/:id/status", async (req: Request, res: Response) => {
   const ticketId = req.params.id;
-  const { status } = req.body;
+  const { status, expectedVersion } = req.body;
 
   if (!status) {
     return res.status(400).json({ error: "Bad Request", message: "Missing status" });
   }
 
   try {
+    const prisma = getPrisma();
     const normalizedStatus = status.toUpperCase().replace(" ", "_");
     const allowedStatuses = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"];
     
@@ -193,21 +225,26 @@ router.patch("/tickets/:id/status", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Bad Request", message: "Invalid status value" });
     }
 
-    const existingTicket = await getPrisma().ticket.findUnique({ where: { id: ticketId } });
+    const existingTicket = await prisma.ticket.findUnique({ where: { id: ticketId } });
     if (!existingTicket) {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
+    }
+
+    // Concurrency check if expectedVersion is supplied
+    if (expectedVersion !== undefined && existingTicket.version !== Number(expectedVersion)) {
+      return res.status(409).json({ error: "Conflict", message: "Ticket has been modified by another user." });
     }
 
     const currentStatus = existingTicket.status.toUpperCase().replace(" ", "_");
     
     const transitionMatrix: Record<string, string[]> = {
-      NEW: ["OPEN", "IN_PROGRESS", "CANCELLED", "RESOLVED", "CLOSED"],
-      OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED"],
-      IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED", "OPEN"],
-      WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED", "CLOSED", "OPEN"],
+      NEW: ["OPEN", "IN_PROGRESS", "CANCELLED"],
+      OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+      IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "OPEN"],
+      WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
       RESOLVED: ["CLOSED", "REOPENED"],
       CLOSED: ["REOPENED"],
-      REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED", "CLOSED"],
+      REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
       CANCELLED: []
     };
 
@@ -215,17 +252,99 @@ router.patch("/tickets/:id/status", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Bad Request", message: "Invalid status transition" });
     }
 
-    const ticket = await getPrisma().ticket.update({
-      where: { id: ticketId },
-      data: { status: normalizedStatus }
+    // Resolution Gate Enforcement (BR-06)
+    if (normalizedStatus === "RESOLVED") {
+      if (!existingTicket.ownerId) {
+        return res.status(400).json({
+          code: "RESOLUTION_GATE_FAILED",
+          error: "Bad Request",
+          message: "Resolution Gate: Ticket must be assigned to an IT Staff owner before resolving."
+        });
+      }
+
+      const actions = await prisma.actionTaken.findMany({
+        where: { ticketId }
+      });
+
+      if (actions.length === 0) {
+        return res.status(400).json({
+          code: "RESOLUTION_GATE_FAILED",
+          error: "Bad Request",
+          message: "Resolution Gate: Ticket cannot be marked as RESOLVED without at least one completed Action Taken with an outcome result."
+        });
+      }
+
+      const completedActionsWithResult = actions.filter(
+        (a) => a.status === "COMPLETED" && a.result && a.result.trim().length > 0
+      );
+      if (completedActionsWithResult.length === 0) {
+        return res.status(400).json({
+          code: "RESOLUTION_GATE_FAILED",
+          error: "Bad Request",
+          message: "Resolution Gate: Ticket cannot be marked as RESOLVED without at least one completed Action Taken with an outcome result."
+        });
+      }
+
+      const unaddressedFollowUps = actions.filter(
+        (a) => a.followUpRequired && (!a.followUpNote || a.followUpNote.trim().length === 0)
+      );
+      if (unaddressedFollowUps.length > 0) {
+        return res.status(400).json({
+          code: "RESOLUTION_GATE_FAILED",
+          error: "Bad Request",
+          message: "Resolution Gate: All actions requiring follow-up must have documented follow-up notes."
+        });
+      }
+    }
+
+    const ticket = await prisma.$transaction(async (tx) => {
+      let updatedTicket;
+      if (expectedVersion !== undefined) {
+        const updateResult = await tx.ticket.updateMany({
+          where: { id: ticketId, version: Number(expectedVersion) },
+          data: {
+            status: normalizedStatus,
+            version: Number(expectedVersion) + 1
+          }
+        });
+        if (updateResult.count === 0) {
+          throw new Error("CONCURRENCY_CONFLICT");
+        }
+        updatedTicket = await tx.ticket.findUnique({ where: { id: ticketId } });
+      } else {
+        updatedTicket = await tx.ticket.update({
+          where: { id: ticketId },
+          data: {
+            status: normalizedStatus,
+            version: existingTicket.version + 1
+          }
+        });
+      }
+
+      // Append to TicketStatusHistory if status changed
+      if (currentStatus !== normalizedStatus) {
+        await tx.ticketStatusHistory.create({
+          data: {
+            ticketId,
+            fromStatus: currentStatus,
+            toStatus: normalizedStatus,
+            changedById: res.locals.user.userId
+          }
+        });
+      }
+
+      return updatedTicket;
     });
 
-    res.status(200).json(ticket);
+    res.status(200).json({ ...ticket, ticket, message: "Ticket status updated successfully" });
   } catch (error: any) {
+    if (error.message === "CONCURRENCY_CONFLICT") {
+      return res.status(409).json({ error: "Conflict", message: "Ticket has been modified by another user." });
+    }
     if (error.code === 'P2025') {
       return res.status(404).json({ error: "Not Found", message: "Ticket not found" });
     }
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error", details: error.message });
   }
 });
 
