@@ -42,6 +42,14 @@ test.describe('E2E-02: Resolution Gate & Ticket Status Lifecycle', () => {
     const checklist = page.locator('[data-testid="resolution-gate-checklist"]');
     await expect(checklist).toBeVisible({ timeout: 10000 });
 
+    // Transition from NEW to IN_PROGRESS if ticket is NEW
+    const statusSelect = page.locator('select.form-select').first();
+    const currentStatus = await statusSelect.inputValue();
+    if (currentStatus === 'NEW') {
+      await statusSelect.selectOption('IN_PROGRESS');
+      await page.waitForTimeout(500);
+    }
+
     // 3. Ensure ticket is claimed/assigned
     const claimBtn = page.locator('button:has-text("Claim Ticket")');
     if (await claimBtn.isVisible()) {
@@ -56,17 +64,16 @@ test.describe('E2E-02: Resolution Gate & Ticket Status Lifecycle', () => {
     const addActionBtn = page.locator('[data-testid="add-action-btn"]');
     await addActionBtn.click();
 
-    const modal = page.locator('[data-testid="action-modal"]');
+    const modal = page.locator('[data-testid="create-action-modal"], [data-testid="action-modal"]');
     await expect(modal).toBeVisible();
 
-    await page.fill('[data-testid="action-description-input"]', 'Comprehensive resolution diagnostics performed.');
-    await page.selectOption('[data-testid="action-status-select"]', 'COMPLETED');
-    await page.fill('[data-testid="action-result-input"]', 'Replaced faulty hardware component; service restored.');
-    await page.click('[data-testid="action-submit-btn"]');
+    await page.fill('#create-action-description, [data-testid="action-description-input"]', 'Comprehensive resolution diagnostics performed.');
+    await page.selectOption('#create-action-status, [data-testid="action-status-select"]', 'COMPLETED');
+    await page.fill('#create-action-result, [data-testid="action-result-input"]', 'Replaced faulty hardware component; service restored.');
+    await page.click('[data-testid="submit-create-action-btn"], [data-testid="action-submit-btn"]');
     await expect(modal).not.toBeVisible({ timeout: 5000 });
 
     // 5. Select RESOLVED in status dropdown
-    const statusSelect = page.locator('select').first();
     const resolvedOption = statusSelect.locator('option[value="RESOLVED"]');
     if (await resolvedOption.count() > 0) {
       await statusSelect.selectOption({ value: 'RESOLVED' });

@@ -1,0 +1,9 @@
+
+Running 5 tests using 5 workers
+
+[1/5] [chromium] › e2e\lab-04\dashboards.spec.ts:13:3 › E2E-03: Role-Tailored Dashboards, Responsive Viewports & SVG Guardrail › Requester Dashboard metrics, drill-downs, and quick-actions
+[2/5] [chromium] › e2e\lab-04\actions-taken-flow.spec.ts:13:3 › E2E-01: Actions Taken Lifecycle & RBAC Flow › IT Staff adds action, edits to completion, and Requester views read-only list
+[3/5] [chromium] › e2e\lab-04\dashboards.spec.ts:77:3 › E2E-03: Role-Tailored Dashboards, Responsive Viewports & SVG Guardrail › Responsive Viewports: zero horizontal scroll on mobile, tablet, and desktop
+[4/5] [chromium] › e2e\lab-04\ticket-resolution.spec.ts:13:3 › E2E-02: Resolution Gate & Ticket Status Lifecycle › Resolution Gate enforces prerequisites before allowing transition to RESOLVED
+[5/5] [chromium] › e2e\lab-04\dashboards.spec.ts:38:3 › E2E-03: Role-Tailored Dashboards, Responsive Viewports & SVG Guardrail › IT Staff Dashboard operational metrics, queue drill-downs, and priority cards
+  5 passed (13.4s)

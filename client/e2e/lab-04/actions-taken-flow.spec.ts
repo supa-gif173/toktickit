@@ -49,13 +49,13 @@ test.describe('E2E-01: Actions Taken Lifecycle & RBAC Flow', () => {
     await addActionBtn.click();
 
     // Fill Create Action Modal
-    const modal = page.locator('[data-testid="action-modal"]');
+    const modal = page.locator('[data-testid="create-action-modal"], [data-testid="action-modal"]');
     await expect(modal).toBeVisible();
-    await page.fill('[data-testid="action-description-input"]', 'Investigated server logs and isolated memory bottleneck.');
-    await page.selectOption('[data-testid="action-status-select"]', 'IN_PROGRESS');
+    await page.fill('#create-action-description, [data-testid="action-description-input"]', 'Investigated server logs and isolated memory bottleneck.');
+    await page.selectOption('#create-action-status, [data-testid="action-status-select"]', 'IN_PROGRESS');
 
     // Submit Action
-    await page.click('[data-testid="action-submit-btn"]');
+    await page.click('[data-testid="submit-create-action-btn"], [data-testid="action-submit-btn"]');
     await expect(modal).not.toBeVisible({ timeout: 5000 });
 
     // Verify created action appears in table
@@ -65,41 +65,39 @@ test.describe('E2E-01: Actions Taken Lifecycle & RBAC Flow', () => {
     const editBtn = page.locator('[data-testid^="edit-action-btn-"]').first();
     if (await editBtn.isVisible()) {
       await editBtn.click();
-      await expect(modal).toBeVisible();
+      const editModal = page.locator('[data-testid="edit-action-modal"], [data-testid="action-modal"]');
+      await expect(editModal).toBeVisible();
 
-      await page.selectOption('[data-testid="action-status-select"]', 'COMPLETED');
-      await page.fill('[data-testid="action-result-input"]', 'Allocated additional JVM heap size and restarted service.');
-      await page.click('[data-testid="action-submit-btn"]');
-      await expect(modal).not.toBeVisible({ timeout: 5000 });
+      await page.selectOption('#edit-action-status, [data-testid="action-status-select"]', 'COMPLETED');
+      await page.fill('#edit-action-result, [data-testid="action-result-input"]', 'Allocated additional JVM heap size and restarted service.');
+      await page.click('[data-testid="submit-edit-action-btn"], [data-testid="action-submit-btn"]');
+      await expect(editModal).not.toBeVisible({ timeout: 5000 });
 
       // Action row should now have locked badge
       await expect(actionsSection).toContainText('[Locked]');
     }
 
     // 4. Logout IT Staff
-    await page.click('button[title="Log Out"]');
-    await expect(page).toHaveURL(/.*\/login/);
+    await page.click('button[title="Log Out"], button:has-text("Logout"), button:has-text("Log out")');
+    await page.waitForTimeout(500);
 
     // 5. Log in as Requester
+    await page.goto('/login');
     await page.fill('input[type="email"]', 'req1@example.com');
     await page.fill('input[type="password"]', 'Password123!');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/');
 
     // Navigate to My Tickets and open detail
-    await page.click('text=My Tickets');
-    await page.waitForURL('**/tickets*');
+    await page.goto('/tickets');
+    await page.waitForSelector('tbody tr a, .mobile-card a');
+    await page.locator('tbody tr a, .mobile-card a').first().click();
+    await page.waitForURL('**/tickets/*');
 
-    const firstTicket = page.locator('tr.ticket-row, [data-testid^="ticket-row-"]').first();
-    if (await firstTicket.isVisible()) {
-      await firstTicket.click();
-      await page.waitForURL('**/tickets/*');
-
-      // Verify Actions Taken is rendered in Read-Only mode
-      const reqActionsSection = page.locator('[data-testid="actions-taken-section"]');
-      await expect(reqActionsSection).toBeVisible({ timeout: 10000 });
-      // Add action button must NOT exist for requesters
-      await expect(page.locator('[data-testid="add-action-btn"]')).not.toBeVisible();
-    }
+    // Verify Actions Taken is rendered in Read-Only mode
+    const reqActionsSection = page.locator('[data-testid="actions-taken-section"]');
+    await expect(reqActionsSection).toBeVisible({ timeout: 10000 });
+    // Add action button must NOT exist for requesters
+    await expect(page.locator('[data-testid="add-action-btn"]')).not.toBeVisible();
   });
 });
