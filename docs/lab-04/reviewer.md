@@ -17,6 +17,7 @@ This document contains the complete bidirectional peer review records for Lab 4 
 3. [PR #42: feat(ui): Actions Taken Ticket Detail UI, modal workflows, and component tests (Resolves #41)](https://github.com/supa-gif173/toktickit/pull/42) - **Approved (LGTM)**
 4. [PR #44: feat(workflow): Ticket workflow, Resolution Gate, Status History, and Concurrency (Resolves #43)](https://github.com/supa-gif173/toktickit/pull/44) - **Approved (LGTM)**
 5. [PR #46: feat(dashboards): Role-Tailored Dashboards, Metrics Aggregations, and Responsive Layouts (Resolves #45)](https://github.com/supa-gif173/toktickit/pull/46) - **Approved (LGTM)**
+6. [PR #48: feat(e2e): End-to-End Regression, Accessibility (Axe-core Scan), and Evidence Hardening (Resolves #47)](https://github.com/supa-gif173/toktickit/pull/48) - **Pending Review**
 
 ---
 
@@ -218,6 +219,20 @@ This document contains the complete bidirectional peer review records for Lab 4 
   > I appreciate your comprehensive verification across the backend authoritative aggregation queries, role-based boundary enforcement (403 for unauthorized requesters), responsive frontend dashboard presentations with 1-click drill-downs, explicit SVG bounding guardrails, and full test suite passes.
   > 
   > All test suites remain 100% green (Server: 68/68, Client: 26/26) with zero regressions. I will now merge PR #46 into `lab4-staging` and proceed to Issue 6.
+
+---
+
+### 6. PR #48: feat(e2e): End-to-End Regression, Accessibility (Axe-core Scan), and Evidence Hardening (Resolves #47)
+
+- **Author (@supa-gif173 - Ready for Review):**
+  > Implementation complete for Issue #47 adhering to Sprint 4 engineering contract:
+  > - **Automated Accessibility Scan (`UI-08`, AC-14, Part 9):** Implemented `client/tests/lab-04/A11yScan.test.tsx` using `axe-core`, scanning Requester Dashboard, Staff Dashboard, Actions Taken, and Ticket History timeline. Verified 0 critical or serious WCAG 2.1 AA violations.
+  > - **Playwright E2E Test Suite (`e2e/lab-04/`):**
+  >   - `actions-taken-flow.spec.ts` (`E2E-01`): Verifies staff create, status transition, terminal lock on completion, and requester read-only mode.
+  >   - `ticket-resolution.spec.ts` (`E2E-02`): Verifies Resolution Gate rejection before satisfying prerequisites and successful transition to `RESOLVED` with status history entry.
+  >   - `dashboards.spec.ts` (`E2E-03`): Verifies metric card drill-downs, responsive zero-horizontal-overflow check across viewports (375px, 768px, 1280px), and explicit SVG dimension guardrail (<= 64px).
+  > - **Unified Database Telemetry Parity:** Generated `artifacts/lab-04/metrics-vs-db.txt` confirming 100% parity between dashboard API queries and direct PostgreSQL database state.
+  > - **Test Suite Execution:** All test suites pass 100% (Server Vitest: 68/68, Client RTL: 29/29) with zero regressions across the codebase.
 
 ---
 
