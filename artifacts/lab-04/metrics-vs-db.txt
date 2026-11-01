@@ -1,10 +1,10 @@
 ================================================================================
 TOKTICKIT LAB 4: DASHBOARD API METRICS VS DIRECT DATABASE QUERIES AUDIT
-Timestamp: 2026-11-01T03:51:19.925Z
+Timestamp: 2026-11-01T06:23:51.935Z
 Database: PostgreSQL local (toktickit)
 ================================================================================
 
-1. IT STAFF OPERATIONAL DASHBOARD (User: staff1@example.com, ID: 0ce4b552-9fe2-4eca-a51b-61c433c2121a)
+1. IT STAFF OPERATIONAL DASHBOARD (User: dash-staff@example.com, ID: 371b26ba-19db-4451-b91a-d7356ca37403)
 --------------------------------------------------------------------------------
 Metric Name                   API Count     Direct DB Count    Match Status
 --------------------------------------------------------------------------------
@@ -12,7 +12,7 @@ New Tickets                   0             0                  MATCH (100%)
 Open Tickets                  1             1                  MATCH (100%)
 In Progress Tickets           2             2                  MATCH (100%)
 Waiting for Requester         0             0                  MATCH (100%)
-My Assigned Tickets           1             1                  MATCH (100%)
+My Assigned Tickets           0             0                  MATCH (100%)
 Unassigned Tickets            1             1                  MATCH (100%)
 
 Priority Breakdown (Active Queue):
